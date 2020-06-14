@@ -1,29 +1,58 @@
 module.exports = class {
-  constructor(logic) {}
+  constructor({ logicList, submitHidden = false }) {
+    this.logicList = logicList;
+    this.submitHidden = submitHidden;
+    // this.store = [];
+    // TEST DATA --- DELETE!!!
+    this.store = [
+      {
+        element: '<div...>',
+        required: false,
+        enabled: true,
+      },
+    ];
+  }
 
-  addEvents(condition) {
-    const origin = document.querySelector(condition.origin);
-    origin.addEventListener('input', () => {
-      this.checkCondition({ ...condition, origin });
+  /**
+   * Listen for inputs on each condition origin element
+   *
+   * @param {Object} logic - Object that contains conditions, operator and actions
+   */
+  addEvents(logic) {
+    logic.conditions.forEach((condition) => {
+      const element = document.querySelector(condition.selector);
+
+      // Add event listener
+      element.addEventListener('input', () => {
+        this.checkConditions(logic);
+      });
     });
   }
 
-  checkConditions({ conditions, operator = 'and', actions } = {}) {
+  /**
+   *
+   * @param {Array} conditions - List of conditions that have to be met
+   * @param {string} [operator = and] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
+   * @param {Array} actions - List of actions to trigger
+   */
+  checkConditions({ conditions, operator = 'and', actions }) {
+    // Check if conditions are met
     let pass = false;
 
+    // Get value of the origin
     for (let condition of conditions) {
-      const value = condition.value;
-      const originValue =
-        condition.origin.type === 'checkbox'
-          ? condition.origin.checked
-          : condition.origin.value;
+      const element = document.querySelector(condition.selector);
+      const elementValue =
+        element.type === 'checkbox' ? element.checked : element.value;
+      const targetValue = condition.value;
 
+      // Check condition PENDENT DE POSAR LES QUE FALTEN
       switch (condition.operator) {
         case 'equal':
-          pass = originValue === value ? true : false;
+          pass = elementValue === targetValue ? true : false;
           break;
         case 'not-equal':
-          pass = originValue !== value ? true : false;
+          pass = elementValue !== targetValue ? true : false;
           break;
       }
 
@@ -31,41 +60,157 @@ module.exports = class {
       if (operator === 'or' && pass) break;
     }
 
+    // Trigger action if condition is met
     if (pass)
       actions.forEach((action) => {
         this.triggerAction(action);
       });
   }
 
-  triggerAction({ selector, type = 'single', action } = {}) {
-    const target = document.querySelector(selector);
+  /**
+   *
+   * @param {string} selector - Selector of the target element
+   * @param {string} action - Action to be triggered (show, hide, enable, disable, require, unrequire)
+   * @param {boolean} [clear=false] - Determines if the input value has to be cleared when the action is triggered
+   */
+  triggerAction({ selector, action, clear = false }) {
+    const element = document.querySelector(selector);
 
-    const parent = target.parentNode;
+    // If element is not a form element, then is a group of elements
+    const isGroup = ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)
+      ? false
+      : true;
 
+    // Store targets in array
+    const targets = [];
+
+    if (isGroup)
+      targets.push(...element.querySelectorAll('input', 'select', 'textarea'));
+    else targets.push(element);
+
+    // Perform action
     switch (action) {
+      // Pendent de saber si cal enable o disable segons el valor guardat al store
       case 'show':
+        this.showInputs(targets);
+        break;
+      case 'hide':
+        this.hideInputs(targets);
+        break;
+      case 'enable':
+        this.enableInputs(targets);
+        break;
+      case 'disable':
+        this.disableInputs(targets);
+        break;
+      case 'require':
+        this.requireInputs(targets);
+        break;
+      case 'unrequire':
+        this.unrequireInputs(targets);
         break;
     }
 
-    const trigger = parent.querySelector(`[data-action=${action}]`);
+    // Clear the input
+    if (clear) this.clearInputs(targets);
+
+    // Search for Webflow Ix2 trigger and click it
+    const parent = target.closest('[data-logic="group"]');
+    const trigger = parent.querySelector(`[data-logic="${action}"]`);
+
     if (!trigger) return;
+
     trigger.click();
   }
-};
 
-const logic = [
-  {
-    conditions: [
-      { origin: '#email', operator: 'equal', value: 'test@test.com' },
-      { origin: '#name', operator: 'not-equal', value: 'Alex' },
-    ],
-    operator: 'and',
-    actions: [
-      {
-        selector: '#phone',
-        type: 'single',
-        action: 'show',
-      },
-    ],
-  },
-];
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be shown
+   */
+  showInputs(targets) {}
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be hidden
+   */
+  hideInputs(targets) {
+    targets.forEach((target) => {
+      this.storeInputData(target);
+    });
+
+    if (!this.submitHidden) this.disableInputs(targets);
+  }
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be enabled
+   */
+  enableInputs(targets) {
+    targets.forEach((target) => {
+      target.disabled = false;
+    });
+  }
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be disabled
+   */
+  disableInputs(targets) {
+    targets.forEach((target) => {
+      target.disabled = true;
+    });
+  }
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be required
+   */
+  requireInputs(targets) {
+    targets.forEach((target) => {
+      target.required = true;
+    });
+  }
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be unrequired
+   */
+  unrequireInputs(targets) {
+    targets.forEach((target) => {
+      target.required = false;
+    });
+  }
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be cleared
+   */
+  clearInputs(targets) {}
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target
+   */
+  storeInputData(target) {
+    // Get target data
+    const data = {
+      element: target,
+      required: target.required,
+      disabled: target.disabled,
+    };
+
+    // Find if element is already stored
+    const index = this.store.findIndex((data) => data.element === target);
+
+    // Update store
+    if (index > -1) this.store[index] = data;
+    else this.store.push(data);
+  }
+
+  init() {
+    // Add event listeners to all conditions origin element
+    this.logicList.forEach((logic) => {
+      this.addEvents(logic);
+    });
+  }
+};
