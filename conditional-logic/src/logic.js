@@ -30,17 +30,17 @@ module.exports = class {
   }
 
   /**
+   * Check if conditions are met
    *
    * @param {Array} conditions - List of conditions that have to be met
    * @param {string} [operator = and] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
    * @param {Array} actions - List of actions to trigger
    */
   checkConditions({ conditions, operator = 'and', actions }) {
-    // Check if conditions are met
     let pass = false;
 
-    // Get value of the origin
     for (let condition of conditions) {
+      // Get value of the origin
       const element = document.querySelector(condition.selector);
       const elementValue =
         element.type === 'checkbox' ? element.checked : element.value;
@@ -56,6 +56,7 @@ module.exports = class {
           break;
       }
 
+      // Operator determines if the loop continues checking conditions
       if (operator === 'and' && !pass) break;
       if (operator === 'or' && pass) break;
     }
@@ -68,6 +69,7 @@ module.exports = class {
   }
 
   /**
+   * Triggers an action
    *
    * @param {string} selector - Selector of the target element
    * @param {string} action - Action to be triggered (show, hide, enable, disable, require, unrequire)
@@ -188,6 +190,7 @@ module.exports = class {
   clearInputs(targets) {}
 
   /**
+   * Stores if the input is enabled and required
    *
    * @param {HTMLElement} target - DOM Node of the target
    */
