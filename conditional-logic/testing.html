@@ -1,0 +1,23 @@
+<script src="https://onedrive.live.com/download?cid=6BF5AC2A9E9521CC&resid=6BF5AC2A9E9521CC%21193985&authkey=AE_cIKewGRTGTQ8"></script>
+
+<script>
+  const conditionalLogic = new ConditionalLogic({
+    logicList: [
+      {
+        conditions: [
+          { selector: '#email', operator: 'equal', value: 'test@test.com' },
+        ],
+        actions: [
+          {
+            selector: '#name',
+            action: 'hide',
+            clear: false,
+          },
+        ],
+      },
+    ],
+    submitHidden: true,
+  });
+
+  conditionalLogic.init();
+</script>

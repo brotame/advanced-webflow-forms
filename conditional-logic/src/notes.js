@@ -38,8 +38,8 @@ var conditionalLogic = new ConditionalLogic({
   logicList: [
     {
       conditions: [
-        { origin: '#email', operator: 'equal', value: 'test@test.com' },
-        { origin: '#name', operator: 'not-equal', value: 'Alex' },
+        { selector: '#email', operator: 'equal', value: 'test@test.com' },
+        { selector: '#name', operator: 'not-equal', value: 'Alex' },
       ],
       operator: 'and',
       actions: [

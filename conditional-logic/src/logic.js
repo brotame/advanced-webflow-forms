@@ -6,14 +6,7 @@ module.exports = class {
     this.submitHidden = submitHidden;
     // this.store = [];
     // TEST DATA --- DELETE!!!
-    this.store = [
-      {
-        element: '<div...>',
-        visible: true,
-        required: false,
-        disabled: true,
-      },
-    ];
+    this.store = [];
   }
 
   /**
@@ -53,7 +46,7 @@ module.exports = class {
         element.type === 'checkbox' ? element.checked : element.value;
       const targetValue = condition.value;
 
-      // Check condition PENDENT DE POSAR LES QUE FALTEN
+      // Check condition
       switch (condition.operator) {
         case 'equal':
           pass = elementValue === targetValue ? true : false;
@@ -79,9 +72,13 @@ module.exports = class {
         case 'less-equal':
           pass = parseInt(elementValue) <= parseInt(targetValue);
           break;
+        case 'empty':
+          pass = elementValue.length === 0;
+        case 'filled':
+          pass = elementValue.length > 0;
       }
 
-      // Operator determines if the loop continues checking conditions
+      // Operator determines if the loop must continue checking conditions
       if (operator === 'and' && !pass) break;
       if (operator === 'or' && pass) break;
     }
@@ -104,34 +101,16 @@ module.exports = class {
     const element = document.querySelector(selector);
     if (!element) throwAlert(selector, 'wrong-selector');
 
-    // If element is not a form element, then is a group of elements
-    const isGroup = ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)
-      ? false
-      : true;
-
-    // Store targets in array
-    const targets = [];
-
-    if (isGroup)
-      targets.push(...element.querySelectorAll('input', 'select', 'textarea'));
-    else targets.push(element);
-
-    // Search for Webflow Ix2 trigger and click it if found
-    const parent = element.closest('[data-logic="group"]');
-    if (!parent) throwAlert(selector, 'no-parent');
-
-    const trigger = parent.querySelector(`[data-logic="${action}"]`);
-    const hasTrigger = !!trigger;
-
-    if (hasTrigger) trigger.click();
+    // Get element targets
+    const targets = this.getTargets(element);
 
     // Perform action
     switch (action) {
       case 'show':
-        this.showInputs(targets, parent, hasTrigger);
+        this.showInputs(targets);
         break;
       case 'hide':
-        this.hideInputs(targets, parent, hasTrigger);
+        this.hideInputs(targets);
         break;
       case 'enable':
         this.enableInputs(targets);
@@ -147,7 +126,7 @@ module.exports = class {
         break;
       default:
         console.log(
-          `No action has been provided for the ${selector} selector.`
+          `No action (or wrong action name) has been provided for the ${selector} selector.`
         );
     }
 
@@ -157,22 +136,61 @@ module.exports = class {
 
   /**
    *
-   * @param {Array} targets - Array of elements that have to be shown
-   * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
-   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default show transition.
+   * @param {HTMLElement} element - DOM Node of the element
    */
-  showInputs(targets, parent, hasTrigger) {
-    // If parent has no Webflow Ix2 trigger, set to display block
-    if (!hasTrigger) parent.style.display = 'block';
+  getTargets(element) {
+    // If element is not a form element, then is a group of elements
+    const isGroup = ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)
+      ? false
+      : true;
+
+    return isGroup
+      ? Array.from(element.querySelectorAll('input', 'select', 'textarea'))
+      : [element];
+  }
+
+  /**
+   *
+   * @param {HTMLElement} parent - DOM Node that contains the Ix2 Triggers
+   * @param {string} action - Action to be performed
+   */
+  triggerInteraction(parent, action) {
+    // Search for Webflow Ix2 trigger and click it if found
+    const trigger = parent.querySelector(`[data-logic="${action}"]`);
+
+    if (trigger) {
+      trigger.click();
+      return true;
+    } else return false;
+  }
+
+  /**
+   *
+   * @param {Array} targets - Array of elements that have to be shown
+   */
+  showInputs(targets) {
+    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
+    const triggered = [];
 
     targets.forEach((target) => {
-      // Check stored values
-      const storedData = this.getStoredData(target);
-      if (!storedData) console.log(`Target ${target} not found in stored data`);
+      // Get stored data
+      const { visible, required, disabled, parent } = this.getStoredData(
+        target
+      );
 
-      // Restore stored values
-      target.required = storedData.required;
-      target.disabled = storedData.disabled;
+      // Trigger Webflow Interaction and store the parent
+      let interaction = false;
+      if (!visible && !triggered.includes(parent)) {
+        interaction = this.triggerInteraction(parent, 'show');
+        triggered.push(parent);
+      }
+
+      // If parent has no Webflow Ix2 trigger, set to display block
+      if (!interaction) parent.style.display = 'block';
+
+      // Restore to stored values
+      target.required = required;
+      target.disabled = disabled;
 
       // Update stored data
       this.updateStoredData(target, 'visible', true);
@@ -182,22 +200,33 @@ module.exports = class {
   /**
    *
    * @param {Array} targets - Array of elements that have to be hidden
-   * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
-   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default hide transition.
    */
-  hideInputs(targets, parent, hasTrigger) {
-    // If parent has no Webflow Ix2 trigger, set to display none
-    if (!hasTrigger) parent.style.display = 'none';
+  hideInputs(targets) {
+    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
+    const triggered = [];
 
     targets.forEach((target) => {
-      // Update stored data
-      this.updateStoredData(target, 'visible', false);
+      // Get stored data
+      const { visible, parent } = this.getStoredData(target);
+
+      // Trigger Webflow Interaction
+      let interaction = false;
+      if (visible && !triggered.includes(parent)) {
+        interaction = this.triggerInteraction(parent, 'hide');
+        triggered.push(parent);
+      }
+
+      // If parent has no Webflow Ix2 trigger, set to display none
+      if (!interaction) parent.style.display = 'none';
 
       // If hidden inputs must not be submitted, disable them.
       if (!this.submitHidden) target.disabled = true;
 
       // Unrequire hidden inputs to avoid form submit bugs
       target.required = false;
+
+      // Update stored data
+      this.updateStoredData(target, 'visible', false);
     });
   }
 
@@ -206,11 +235,19 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be enabled
    */
   enableInputs(targets) {
-    targets.forEach((target) => {
-      const storedData = this.getStoredData(target);
-      if (!storedData) console.log(`Target ${target} not found in stored data`);
+    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
+    const triggered = [];
 
-      if (storedData.visible) target.disabled = false;
+    targets.forEach((target) => {
+      // Get stored data
+      const { visible, parent } = this.getStoredData(target);
+
+      if (!triggered.includes(parent)) {
+        this.triggerInteraction(parent, 'enable');
+        triggered.push(parent);
+      }
+
+      if (visible) target.disabled = false;
 
       this.updateStoredData(target, 'disabled', false);
     });
@@ -221,11 +258,20 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be disabled
    */
   disableInputs(targets) {
-    targets.forEach((target) => {
-      const storedData = this.getStoredData(target);
-      if (!storedData) console.log(`Target ${target} not found in stored data`);
+    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
+    const triggered = [];
 
-      if (storedData.visible) target.disabled = true;
+    targets.forEach((target) => {
+      // Get stored data
+      const { visible, parent } = this.getStoredData(target);
+
+      // Trigger Webflow Interaction
+      if (!triggered.includes(parent)) {
+        this.triggerInteraction(parent, 'disable');
+        triggered.push(parent);
+      }
+
+      if (visible) target.disabled = true;
 
       this.updateStoredData(target, 'disabled', true);
     });
@@ -236,11 +282,20 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be required
    */
   requireInputs(targets) {
-    targets.forEach((target) => {
-      const storedData = this.getStoredData(target);
-      if (!storedData) console.log(`Target ${target} not found in stored data`);
+    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
+    const triggered = [];
 
-      if (storedData.visible) target.required = true;
+    targets.forEach((target) => {
+      // Get stored data
+      const { visible, parent } = this.getStoredData(target);
+
+      // Trigger Webflow Interaction
+      if (!triggered.includes(parent)) {
+        this.triggerInteraction(parent, 'require');
+        triggered.push(parent);
+      }
+
+      if (visible) target.required = true;
 
       this.updateStoredData(target, 'required', true);
     });
@@ -251,11 +306,20 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be unrequired
    */
   unrequireInputs(targets) {
-    targets.forEach((target) => {
-      const storedData = this.getStoredData(target);
-      if (!storedData) console.log(`Target ${target} not found in stored data`);
+    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
+    const triggered = [];
 
-      if (storedData.visible) target.required = false;
+    targets.forEach((target) => {
+      // Get stored data
+      const { visible, parent } = this.getStoredData(target);
+
+      // Trigger Webflow Interaction
+      if (!triggered.includes(parent)) {
+        this.triggerInteraction(parent, 'unrequire');
+        triggered.push(parent);
+      }
+
+      if (visible) target.required = false;
 
       this.updateStoredData(target, 'required', false);
     });
@@ -276,29 +340,37 @@ module.exports = class {
   /**
    * Stores input data
    *
-   * @param {string} selector - Query selector of the target
+   * @param {string} selector - Query selector of the element (group or single)
    */
   storeInputData(selector) {
     const element = document.querySelector(selector);
     if (!element) throwAlert(selector, 'wrong-selector');
 
-    // Get element data
-    const data = {
-      element: element,
-      visible: !!(
-        element.offsetWidth ||
-        element.offsetHeight ||
-        element.getClientRects().length
-      ),
-      required: element.required,
-      disabled: element.disabled,
-    };
+    const targets = this.getTargets(element);
 
-    // Find element index in store
-    const index = this.store.findIndex((data) => data.element === element);
+    targets.forEach((target) => {
+      // Get element data
+      const parent = target.closest('[data-logic="group"]');
+      if (!parent) throwAlert(selector, 'no-parent');
 
-    // If element is not stored, push it
-    if (index === -1) this.store.push(data);
+      const data = {
+        element: target,
+        visible: !!(
+          target.offsetWidth ||
+          target.offsetHeight ||
+          target.getClientRects().length
+        ),
+        required: target.required,
+        disabled: target.disabled,
+        parent: parent,
+      };
+
+      // Find element index in store
+      const index = this.store.findIndex((data) => data.element === target);
+
+      // If element is not stored, push it
+      if (index === -1) this.store.push(data);
+    });
   }
 
   /**
@@ -320,16 +392,12 @@ module.exports = class {
   /**
    *
    * @param {HTMLElement} target - DOM Node of the target
-   * @param {string} [single] - Optional string for single data return (visible, required, disabled)
    */
-  getStoredData(target, single) {
+  getStoredData(target) {
     // Check store values
     const storedData = this.store.find((data) => data.element === target);
 
     if (!storedData) return;
-    if (single === 'visible') return storedData.visible;
-    if (single === 'required') return storedData.required;
-    if (single === 'disabled') return storedData.disabled;
 
     return storedData;
   }
@@ -344,5 +412,9 @@ module.exports = class {
         this.storeInputData(action.selector);
       });
     });
+  }
+
+  logStore() {
+    console.log(this.store);
   }
 };
