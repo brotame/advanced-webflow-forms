@@ -7,6 +7,7 @@ module.exports = class {
     this.store = [
       {
         element: '<div...>',
+        visible: true,
         required: false,
         enabled: true,
       },
@@ -129,7 +130,19 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be shown
    */
-  showInputs(targets) {}
+  showInputs(targets) {
+    targets.forEach((target) => {
+      // Check store values
+      const storedData = this.getStoredData(target);
+
+      // PENDENT SABER SI CAL I POSAR QUÈ FER EN CAS DE QUE NO HI HAGI IX2 TRIGGER
+      if (!storedData) return;
+
+      // Require or enable input if
+      if (storedData.required && !target.required) this.requireInputs([target]);
+      if (storedData.enabled && !target.enabled) this.enableInputs([target]);
+    });
+  }
 
   /**
    *
@@ -198,6 +211,11 @@ module.exports = class {
     // Get target data
     const data = {
       element: target,
+      visible: !!(
+        target.offsetWidth ||
+        target.offsetHeight ||
+        target.getClientRects().length
+      ),
       required: target.required,
       disabled: target.disabled,
     };
@@ -208,6 +226,23 @@ module.exports = class {
     // Update store
     if (index > -1) this.store[index] = data;
     else this.store.push(data);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target
+   * @param {string} [single] - Optional string for single data return (visible, required, disabled)
+   */
+  getStoredData(target, single) {
+    // Check store values
+    const storedData = this.store.find((data) => data.element === target);
+
+    if (!storedData) return;
+    if (single === 'visible') return storedData.visible;
+    if (single === 'required') return storedData.required;
+    if (single === 'disabled') return storedData.disabled;
+
+    return storedData;
   }
 
   init() {
