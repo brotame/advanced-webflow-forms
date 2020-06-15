@@ -37,7 +37,7 @@ module.exports = class {
    * Check if conditions are met
    *
    * @param {Array} conditions - List of conditions that have to be met
-   * @param {string} [operator = and] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
+   * @param {string} [operator = 'and'] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
    * @param {Array} actions - List of actions to trigger
    */
   checkConditions({ conditions, operator = 'and', actions }) {
@@ -97,7 +97,7 @@ module.exports = class {
       targets.push(...element.querySelectorAll('input', 'select', 'textarea'));
     else targets.push(element);
 
-    // Search for Webflow Ix2 trigger and click it
+    // Search for Webflow Ix2 trigger and click it if found
     const parent = element.closest('[data-logic="group"]');
 
     if (!parent) throwAlert(selector, 'no-parent');
@@ -109,7 +109,6 @@ module.exports = class {
 
     // Perform action
     switch (action) {
-      // Pendent de saber si cal enable o disable segons el valor guardat al store
       case 'show':
         this.showInputs(targets, parent, hasTrigger);
         break;
@@ -142,15 +141,19 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be shown
    * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
-   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default show.
+   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default show transition.
    */
   showInputs(targets, parent, hasTrigger) {
     targets.forEach((target) => {
       // Check store values
       const storedData = this.getStoredData(target);
 
-      // PENDENT SABER SI CAL I POSAR QUÈ FER EN CAS DE QUE NO HI HAGI IX2 TRIGGER
-      if (!storedData) return;
+      if (!storedData) console.log(`Target ${target} not found in stored data`);
+
+      // If parent has no Webflow Ix2 trigger, perform jQuery show() action
+      if (!hasTrigger) {
+        $(parent).show(250);
+      }
 
       // Require or enable input if
       /* if (storedData.required && !target.required) this.requireInputs([target]);
@@ -162,29 +165,13 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be hidden
    * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
-   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default hide.
+   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default hide transition.
    */
   hideInputs(targets, parent, hasTrigger) {
     // Make sure that the parent is set to display:none in order to avoid crashes
-    if (hasTrigger) {
-      parent.style.display = 'none';
-    }
-
-    // If parent has no Webflow Ix2 trigger, perform default hide action
-    else {
-      parent.style.transition = 'opacity 0.5s ease';
-
-      parent.addEventListener(
-        'transitionend',
-        (e) => {
-          parent.style.display = 'none';
-          parent.style.transition = '';
-        },
-        { once: true }
-      );
-
-      parent.style.opacity = '0';
-    }
+    if (hasTrigger) parent.style.display = 'none';
+    // If parent has no Webflow Ix2 trigger, perform jQuery hide() action
+    else $(parent).hide(250);
 
     // Update stored data
     targets.forEach((target) => {
@@ -192,7 +179,7 @@ module.exports = class {
     });
 
     // If hidden inputs must not be submitted, disable them.
-    if (!this.submitHidden) this.disableInputs(targets);
+    if (!this.submitHidden) this.disableInputs(targets, false);
 
     // Unrequire hidden inputs to avoid form submit bugs
     this.unrequireInputs(targets, false);
@@ -217,10 +204,17 @@ module.exports = class {
   /**
    *
    * @param {Array} targets - Array of elements that have to be disabled
+   * @param {boolean} [updateStore=true] - Determines if the stored value has to be updated.
    */
-  disableInputs(targets) {
+  disableInputs(targets, updateStore = true) {
     targets.forEach((target) => {
-      target.disabled = true;
+      const storedData = this.getStoredData(target);
+
+      if (!storedData) console.log(`Target ${target} not found in stored data`);
+
+      if (storedData.visible && !storedData.disabled) target.disabled = true;
+
+      if (updateStore) this.updateStoredData(target, 'disabled', true);
     });
   }
 
