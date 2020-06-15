@@ -44,6 +44,7 @@ module.exports = class {
     let pass = false;
 
     for (let condition of conditions) {
+      // PENDENT DE FER QUE SI EL SELECTOR ÉS UN GRUP DE RADIOS, QUE SIGUI 'input[name"RADIO_GROUP"]:checked'
       const element = document.querySelector(condition.selector);
       if (!element) throwAlert(condition.selector, 'wrong-selector');
 
@@ -102,15 +103,17 @@ module.exports = class {
     if (!parent) throwAlert(selector, 'no-parent');
 
     const trigger = parent.querySelector(`[data-logic="${action}"]`);
-    if (trigger) trigger.click();
+    const hasTrigger = !!trigger;
+
+    if (hasTrigger) trigger.click();
 
     // Perform action
     switch (action) {
       case 'show':
-        this.showInputs(targets, parent);
+        this.showInputs(targets, parent, hasTrigger);
         break;
       case 'hide':
-        this.hideInputs(targets, parent);
+        this.hideInputs(targets, parent, hasTrigger);
         break;
       case 'enable':
         this.enableInputs(targets);
@@ -138,20 +141,23 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be shown
    * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
+   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default show transition.
    */
-  showInputs(targets, parent) {
-    targets.forEach((target) => {
-      // Check store values
-      const storedData = this.getStoredData(target);
+  showInputs(targets, parent, hasTrigger) {
+    // If parent has no Webflow Ix2 trigger, set to display block
+    if (!hasTrigger) parent.style.display = 'block';
 
+    targets.forEach((target) => {
+      // Check stored values
+      const storedData = this.getStoredData(target);
       if (!storedData) console.log(`Target ${target} not found in stored data`);
 
-      // Perform jQuery show() action
-      $(parent).show(250);
+      // Restore stored values
+      target.required = storedData.required;
+      target.disabled = storedData.disabled;
 
-      // Require or enable input if
-      /* if (storedData.required && !target.required) this.requireInputs([target]);
-      if (storedData.enabled && !target.disabled) this.enableInputs([target]); */
+      // Update stored data
+      this.updateStoredData(target, 'visible', true);
     });
   }
 
@@ -159,21 +165,22 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be hidden
    * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
+   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default hide transition.
    */
-  hideInputs(targets, parent) {
-    // Perform jQuery hide() action
-    $(parent).hide(250);
+  hideInputs(targets, parent, hasTrigger) {
+    // If parent has no Webflow Ix2 trigger, set to display none
+    if (!hasTrigger) parent.style.display = 'none';
 
-    // Update stored data
     targets.forEach((target) => {
+      // Update stored data
       this.updateStoredData(target, 'visible', false);
+
+      // If hidden inputs must not be submitted, disable them.
+      if (!this.submitHidden) target.disabled = true;
+
+      // Unrequire hidden inputs to avoid form submit bugs
+      target.required = false;
     });
-
-    // If hidden inputs must not be submitted, disable them.
-    if (!this.submitHidden) this.disableInputs(targets, false);
-
-    // Unrequire hidden inputs to avoid form submit bugs
-    this.unrequireInputs(targets, false);
   }
 
   /**
@@ -183,10 +190,9 @@ module.exports = class {
   enableInputs(targets) {
     targets.forEach((target) => {
       const storedData = this.getStoredData(target);
-
       if (!storedData) console.log(`Target ${target} not found in stored data`);
 
-      if (storedData.visible && storedData.disabled) target.disabled = false;
+      if (storedData.visible) target.disabled = false;
 
       this.updateStoredData(target, 'disabled', false);
     });
@@ -195,17 +201,15 @@ module.exports = class {
   /**
    *
    * @param {Array} targets - Array of elements that have to be disabled
-   * @param {boolean} [updateStore=true] - Determines if the stored value has to be updated.
    */
-  disableInputs(targets, updateStore = true) {
+  disableInputs(targets) {
     targets.forEach((target) => {
       const storedData = this.getStoredData(target);
-
       if (!storedData) console.log(`Target ${target} not found in stored data`);
 
-      if (storedData.visible && !storedData.disabled) target.disabled = true;
+      if (storedData.visible) target.disabled = true;
 
-      if (updateStore) this.updateStoredData(target, 'disabled', true);
+      this.updateStoredData(target, 'disabled', true);
     });
   }
 
@@ -216,10 +220,9 @@ module.exports = class {
   requireInputs(targets) {
     targets.forEach((target) => {
       const storedData = this.getStoredData(target);
-
       if (!storedData) console.log(`Target ${target} not found in stored data`);
 
-      if (storedData.visible && !storedData.required) target.required = true;
+      if (storedData.visible) target.required = true;
 
       this.updateStoredData(target, 'required', true);
     });
@@ -228,17 +231,15 @@ module.exports = class {
   /**
    *
    * @param {Array} targets - Array of elements that have to be unrequired
-   * @param {boolean} [updateStore=true] - Determines if the stored value has to be updated.
    */
-  unrequireInputs(targets, updateStore = true) {
+  unrequireInputs(targets) {
     targets.forEach((target) => {
       const storedData = this.getStoredData(target);
-
       if (!storedData) console.log(`Target ${target} not found in stored data`);
 
-      if (storedData.visible && storedData.required) target.required = false;
+      if (storedData.visible) target.required = false;
 
-      if (updateStore) this.updateStoredData(target, 'required', false);
+      this.updateStoredData(target, 'required', false);
     });
   }
 
