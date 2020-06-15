@@ -99,21 +99,18 @@ module.exports = class {
 
     // Search for Webflow Ix2 trigger and click it if found
     const parent = element.closest('[data-logic="group"]');
-
     if (!parent) throwAlert(selector, 'no-parent');
 
     const trigger = parent.querySelector(`[data-logic="${action}"]`);
-    const hasTrigger = !!trigger;
-
-    if (hasTrigger) trigger.click();
+    if (trigger) trigger.click();
 
     // Perform action
     switch (action) {
       case 'show':
-        this.showInputs(targets, parent, hasTrigger);
+        this.showInputs(targets, parent);
         break;
       case 'hide':
-        this.hideInputs(targets, parent, hasTrigger);
+        this.hideInputs(targets, parent);
         break;
       case 'enable':
         this.enableInputs(targets);
@@ -141,19 +138,16 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be shown
    * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
-   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default show transition.
    */
-  showInputs(targets, parent, hasTrigger) {
+  showInputs(targets, parent) {
     targets.forEach((target) => {
       // Check store values
       const storedData = this.getStoredData(target);
 
       if (!storedData) console.log(`Target ${target} not found in stored data`);
 
-      // If parent has no Webflow Ix2 trigger, perform jQuery show() action
-      if (!hasTrigger) {
-        $(parent).show(250);
-      }
+      // Perform jQuery show() action
+      $(parent).show(250);
 
       // Require or enable input if
       /* if (storedData.required && !target.required) this.requireInputs([target]);
@@ -165,13 +159,10 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be hidden
    * @param {HTMLElement} parent - Parent container DOM Element of the target inputs.
-   * @param {boolean} hasTrigger - Declares if custom Webflow Ix2 has been found. If not, perform default hide transition.
    */
-  hideInputs(targets, parent, hasTrigger) {
-    // Make sure that the parent is set to display:none in order to avoid crashes
-    if (hasTrigger) parent.style.display = 'none';
-    // If parent has no Webflow Ix2 trigger, perform jQuery hide() action
-    else $(parent).hide(250);
+  hideInputs(targets, parent) {
+    // Perform jQuery hide() action
+    $(parent).hide(250);
 
     // Update stored data
     targets.forEach((target) => {
