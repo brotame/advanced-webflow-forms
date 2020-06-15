@@ -61,6 +61,24 @@ module.exports = class {
         case 'not-equal':
           pass = elementValue !== targetValue ? true : false;
           break;
+        case 'contain':
+          pass = elementValue.includes(targetValue) ? true : false;
+          break;
+        case 'not-contain':
+          pass = !elementValue.includes(targetValue) ? true : false;
+          break;
+        case 'greater':
+          pass = parseInt(elementValue) > parseInt(targetValue);
+          break;
+        case 'greater-equal':
+          pass = parseInt(elementValue) >= parseInt(targetValue);
+          break;
+        case 'less':
+          pass = parseInt(elementValue) < parseInt(targetValue);
+          break;
+        case 'less-equal':
+          pass = parseInt(elementValue) <= parseInt(targetValue);
+          break;
       }
 
       // Operator determines if the loop continues checking conditions
@@ -247,7 +265,13 @@ module.exports = class {
    *
    * @param {Array} targets - Array of elements that have to be cleared
    */
-  clearInputs(targets) {}
+  clearInputs(targets) {
+    targets.forEach((target) => {
+      if (target.type === 'checkbox' || target.type === 'radio')
+        target.checked = false;
+      else target.value = '';
+    });
+  }
 
   /**
    * Stores input data
