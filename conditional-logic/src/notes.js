@@ -16,7 +16,7 @@ const actions = ['show', 'hide', 'enable', 'disable', 'require', 'unrequire'];
 const logic = [
   {
     conditions: [
-      { selector: '#email', operator: 'equal', value: 'test@test.com' },
+      { selector: '#email', operator: 'equal', value: 'test@test.com' }, // Value always a string!
       { selector: '#name', operator: 'not-equal', value: 'Alex' },
     ],
     operator: 'and',
