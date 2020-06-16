@@ -1,22 +1,100 @@
 <script src="https://onedrive.live.com/download?cid=6BF5AC2A9E9521CC&resid=6BF5AC2A9E9521CC%21193985&authkey=AE_cIKewGRTGTQ8"></script>
 
 <script>
-  const conditionalLogic = new ConditionalLogic({
+  var conditionalLogic = new ConditionalLogic({
     logicList: [
       {
         conditions: [
-          { selector: '#email', operator: 'equal', value: 'test@test.com' },
+          { selector: '#options', operator: 'equal', value: 'Contact Info' },
         ],
         actions: [
           {
-            selector: '#name',
+            selector: '.contact-info',
+            action: 'show',
+            clear: false,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#options',
+            operator: 'not-equal',
+            value: 'Contact Info',
+          },
+        ],
+        actions: [
+          {
+            selector: '.contact-info',
             action: 'hide',
             clear: false,
           },
         ],
       },
+      {
+        conditions: [
+          {
+            selector: '#options',
+            operator: 'equal',
+            value: 'Demo',
+          },
+        ],
+        actions: [
+          {
+            selector: '.demo',
+            action: 'show',
+            clear: false,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#options',
+            operator: 'not-equal',
+            value: 'Demo',
+          },
+        ],
+        actions: [
+          {
+            selector: '.demo',
+            action: 'hide',
+            clear: false,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#number',
+            operator: 'greater',
+            value: '5',
+          },
+        ],
+        actions: [
+          {
+            selector: 'custom',
+            action: 'greater-5',
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#number',
+            operator: 'less-equal',
+            value: '5',
+          },
+        ],
+        actions: [
+          {
+            selector: 'custom',
+            action: 'less-5',
+          },
+        ],
+      },
     ],
-    submitHidden: true,
+    submitHidden: false,
   });
 
   conditionalLogic.init();
