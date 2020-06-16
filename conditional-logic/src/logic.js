@@ -16,6 +16,8 @@ module.exports = class {
    */
   addEvents(logic) {
     logic.conditions.forEach((condition) => {
+      console.log(`Adding event for ${condition.selector}`);
+
       const element = document.querySelector(condition.selector);
       if (!element) throwAlert(condition.selector, 'wrong-selector');
 
@@ -37,6 +39,10 @@ module.exports = class {
     let pass = false;
 
     for (let condition of conditions) {
+      console.log(
+        `Checking if ${condition.selector} ${condition.operator} ${condition.value}`
+      );
+
       // PENDENT DE FER QUE SI EL SELECTOR ÉS UN GRUP DE RADIOS, QUE SIGUI 'input[name"RADIO_GROUP"]:checked'
       const element = document.querySelector(condition.selector);
       if (!element) throwAlert(condition.selector, 'wrong-selector');
@@ -74,14 +80,20 @@ module.exports = class {
           break;
         case 'empty':
           pass = elementValue.length === 0;
+          break;
         case 'filled':
           pass = elementValue.length > 0;
+          break;
+        default:
+          console.log(`The operator ${condition.operator} is not valid.`);
       }
 
       // Operator determines if the loop must continue checking conditions
       if (operator === 'and' && !pass) break;
       if (operator === 'or' && pass) break;
     }
+
+    console.log(`Conditions passed: ${pass}`);
 
     // Trigger action if condition is met
     if (pass)
@@ -98,6 +110,8 @@ module.exports = class {
    * @param {boolean} [clear=false] - Determines if the input value has to be cleared when the action is triggered
    */
   triggerAction({ selector, action, clear = false }) {
+    console.log(`Triggering ${action} for ${selector} and clearing: ${clear}`);
+
     const element = document.querySelector(selector);
     if (!element) throwAlert(selector, 'wrong-selector');
 
@@ -144,6 +158,10 @@ module.exports = class {
       ? false
       : true;
 
+    console.log(`Getting targets from:`);
+    console.log(element);
+    console.log(`Which is a group: ${isGroup}`);
+
     return isGroup
       ? Array.from(element.querySelectorAll('input', 'select', 'textarea'))
       : [element];
@@ -155,8 +173,14 @@ module.exports = class {
    * @param {string} action - Action to be performed
    */
   triggerInteraction(parent, action) {
+    console.log(`Triggering Interaction ${action} from parent:`);
+    console.log(parent);
+
     // Search for Webflow Ix2 trigger and click it if found
     const trigger = parent.querySelector(`[data-logic="${action}"]`);
+
+    console.log(`The trigger is:`);
+    console.log(trigger);
 
     if (trigger) {
       trigger.click();
@@ -173,20 +197,33 @@ module.exports = class {
     const triggered = [];
 
     targets.forEach((target) => {
+      console.log(`Showing Input:`);
+      console.log(target);
+
       // Get stored data
       const { visible, required, disabled, parent } = this.getStoredData(
         target
       );
 
+      if (visible) return;
+
+      console.log(
+        `The target is visible: ${visible}, so the action is being triggered.`
+      );
+
       // Trigger Webflow Interaction and store the parent
       let interaction = false;
-      if (!visible && !triggered.includes(parent)) {
+      if (!triggered.includes(parent)) {
         interaction = this.triggerInteraction(parent, 'show');
         triggered.push(parent);
+        console.log(`The triggered array is `);
+        console.log(triggered);
       }
 
       // If parent has no Webflow Ix2 trigger, set to display block
       if (!interaction) parent.style.display = 'block';
+
+      console.log('The target has been shown:');
 
       // Restore to stored values
       target.required = required;
@@ -206,12 +243,19 @@ module.exports = class {
     const triggered = [];
 
     targets.forEach((target) => {
+      console.log(`Hiding Input:`);
+      console.log(target);
+      console.log('The triggered array is:');
+      console.log(triggered);
+
       // Get stored data
       const { visible, parent } = this.getStoredData(target);
 
+      if (!visible) return;
+
       // Trigger Webflow Interaction
       let interaction = false;
-      if (visible && !triggered.includes(parent)) {
+      if (!triggered.includes(parent)) {
         interaction = this.triggerInteraction(parent, 'hide');
         triggered.push(parent);
       }
@@ -235,12 +279,16 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be enabled
    */
   enableInputs(targets) {
+    console.log('Enabling Inputs');
+
     // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
     const triggered = [];
 
     targets.forEach((target) => {
       // Get stored data
-      const { visible, parent } = this.getStoredData(target);
+      const { visible, disabled, parent } = this.getStoredData(target);
+
+      if (!disabled) return;
 
       if (!triggered.includes(parent)) {
         this.triggerInteraction(parent, 'enable');
@@ -258,12 +306,16 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be disabled
    */
   disableInputs(targets) {
+    console.log('Disabling Inputs');
+
     // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
     const triggered = [];
 
     targets.forEach((target) => {
       // Get stored data
-      const { visible, parent } = this.getStoredData(target);
+      const { visible, disabled, parent } = this.getStoredData(target);
+
+      if (disabled) return;
 
       // Trigger Webflow Interaction
       if (!triggered.includes(parent)) {
@@ -282,12 +334,16 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be required
    */
   requireInputs(targets) {
+    console.log('Requiring Inputs');
+
     // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
     const triggered = [];
 
     targets.forEach((target) => {
       // Get stored data
-      const { visible, parent } = this.getStoredData(target);
+      const { visible, required, parent } = this.getStoredData(target);
+
+      if (required) return;
 
       // Trigger Webflow Interaction
       if (!triggered.includes(parent)) {
@@ -306,12 +362,16 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be unrequired
    */
   unrequireInputs(targets) {
+    console.log('Unrequiring Inputs');
+
     // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
     const triggered = [];
 
     targets.forEach((target) => {
       // Get stored data
-      const { visible, parent } = this.getStoredData(target);
+      const { visible, required, parent } = this.getStoredData(target);
+
+      if (!required) return;
 
       // Trigger Webflow Interaction
       if (!triggered.includes(parent)) {
@@ -330,6 +390,8 @@ module.exports = class {
    * @param {Array} targets - Array of elements that have to be cleared
    */
   clearInputs(targets) {
+    console.log('Clearing Inputs');
+
     targets.forEach((target) => {
       if (target.type === 'checkbox' || target.type === 'radio')
         target.checked = false;
@@ -343,12 +405,17 @@ module.exports = class {
    * @param {string} selector - Query selector of the element (group or single)
    */
   storeInputData(selector) {
+    console.log(`Storing Input Data from selector ${selector}`);
+
     const element = document.querySelector(selector);
     if (!element) throwAlert(selector, 'wrong-selector');
 
     const targets = this.getTargets(element);
 
     targets.forEach((target) => {
+      console.log(`Target being stored is:`);
+      console.log(target);
+
       // Get element data
       const parent = target.closest('[data-logic="group"]');
       if (!parent) throwAlert(selector, 'no-parent');
@@ -370,6 +437,10 @@ module.exports = class {
 
       // If element is not stored, push it
       if (index === -1) this.store.push(data);
+
+      console.log(`The data being stored is:`);
+      console.log(data);
+      console.log(`The index found in current stored data is: ${index}`);
     });
   }
 
@@ -381,6 +452,10 @@ module.exports = class {
    * @param {boolean} value - Boolean value to assign
    */
   updateStoredData(target, key, value) {
+    console.log(`Updating Stored Data from:`);
+    console.log(target);
+    console.log(`Key: ${key}, Value: ${value}`);
+
     // Find index of element
     const index = this.store.findIndex((data) => data.element === target);
 
@@ -394,6 +469,9 @@ module.exports = class {
    * @param {HTMLElement} target - DOM Node of the target
    */
   getStoredData(target) {
+    console.log(`Getting Stored Data from:`);
+    console.log(target);
+
     // Check store values
     const storedData = this.store.find((data) => data.element === target);
 
@@ -403,6 +481,8 @@ module.exports = class {
   }
 
   init() {
+    console.log('Initializing');
+
     this.logicList.forEach((logic) => {
       // Add event listeners to all conditions origin
       this.addEvents(logic);
