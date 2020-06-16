@@ -93,6 +93,129 @@
           },
         ],
       },
+      {
+        conditions: [
+          {
+            selector: '#checkbox',
+            operator: 'equal',
+            value: false,
+          },
+        ],
+        actions: [
+          {
+            selector: '#disabled',
+            action: 'disable',
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#checkbox',
+            operator: 'equal',
+            value: true,
+          },
+        ],
+        actions: [
+          {
+            selector: '#disabled',
+            action: 'enable',
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#checkbox-2',
+            operator: 'equal',
+            value: false,
+          },
+        ],
+        actions: [
+          {
+            selector: '#disabled',
+            action: 'disable',
+            clear: true,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#checkbox-2',
+            operator: 'equal',
+            value: true,
+          },
+        ],
+        actions: [
+          {
+            selector: '#disabled',
+            action: 'enable',
+            clear: true,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#fill',
+            operator: 'filled',
+          },
+        ],
+        actions: [
+          {
+            selector: '#fill-more',
+            action: 'show',
+            clear: true,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#fill',
+            operator: 'empty',
+          },
+        ],
+        actions: [
+          {
+            selector: '#fill-more',
+            action: 'hide',
+            clear: true,
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#contain',
+            operator: 'contain',
+            value: 'love',
+          },
+        ],
+        actions: [
+          {
+            selector: 'custom',
+            action: 'show-hurt',
+          },
+        ],
+      },
+      {
+        conditions: [
+          {
+            selector: '#contain',
+            operator: 'not-contain',
+            value: 'love',
+          },
+        ],
+        actions: [
+          {
+            selector: 'custom',
+            action: 'hide-hurt',
+            clear: true,
+          },
+        ],
+      },
     ],
     submitHidden: false,
   });

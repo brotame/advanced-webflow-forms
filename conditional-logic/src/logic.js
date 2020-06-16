@@ -1,9 +1,14 @@
 import { throwAlert } from './helpers';
 
 module.exports = class {
-  constructor({ logicList, submitHidden = false }) {
+  constructor({
+    logicList,
+    submitHidden = false,
+    checkConditionsOnLoad = true,
+  }) {
     this.logicList = logicList;
     this.submitHidden = submitHidden;
+    this.checkConditionsOnLoad = checkConditionsOnLoad;
     this.store = [];
   }
 
@@ -16,6 +21,8 @@ module.exports = class {
     logic.conditions.forEach((condition) => {
       const element = document.querySelector(condition.selector);
       if (!element) throwAlert(condition.selector, 'wrong-selector');
+
+      if (this.checkConditionsOnLoad) this.checkConditions(logic);
 
       // Add event listener
       element.addEventListener('input', () => {
@@ -389,6 +396,8 @@ module.exports = class {
   }
 
   init() {
+    console.log('Conditional Logic loaded!');
+
     this.logicList.forEach((logic) => {
       // Add event listeners to all conditions origin
       this.addEvents(logic);
