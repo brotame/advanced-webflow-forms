@@ -118,34 +118,178 @@ module.exports = class {
     // Get element targets
     const targets = this.getTargets(element);
 
-    // Perform action
-    switch (action) {
-      case 'show':
-        this.showInputs(targets);
-        break;
-      case 'hide':
-        this.hideInputs(targets);
-        break;
-      case 'enable':
-        this.enableInputs(targets);
-        break;
-      case 'disable':
-        this.disableInputs(targets);
-        break;
-      case 'require':
-        this.requireInputs(targets);
-        break;
-      case 'unrequire':
-        this.unrequireInputs(targets);
-        break;
-      default:
-        console.log(
-          `No action (or wrong action name) has been provided for the ${selector} selector.`
-        );
-    }
+    // Triggered parents will be stored in the array to avoid multiple triggers on the same element
+    const triggered = [];
+
+    targets.forEach((target) => {
+      // Get stored data
+      const { visible, required, disabled, parent } = this.getStoredData(
+        target
+      );
+
+      // If element already meets the condition, abort
+      if (action === 'show' && visible) return;
+      if (action === 'hide' && !visible) return;
+      if (action === 'enable' && !disabled) return;
+      if (action === 'disable' && disabled) return;
+      if (action === 'require' && required) return;
+      if (action === 'unrequire' && !required) return;
+
+      // Check for Webflow Ix2 Interaction
+      let interaction = false;
+      if (!triggered.includes(parent)) {
+        interaction = this.triggerInteraction(parent, action);
+        triggered.push(parent);
+        console.log(`The triggered array is `);
+        console.log(triggered);
+      }
+
+      // Perform the action
+      switch (action) {
+        case 'show':
+          this.showInput(target, parent, interaction, required, disabled);
+          break;
+
+        case 'hide':
+          this.hideInput(target, parent, interaction);
+          break;
+
+        case 'enable':
+          this.enableInput(target, visible);
+          break;
+
+        case 'disable':
+          this.disableInput(target, visible);
+          break;
+
+        case 'require':
+          this.requireInput(target, visible);
+          break;
+
+        case 'unrequire':
+          this.unrequireInput(target, visible);
+          break;
+
+        default:
+          console.log(
+            `No action (or wrong action name) has been provided for the ${selector} selector.`
+          );
+      }
+
+      console.log('The triggered array is:');
+      console.log(triggered);
+    });
 
     // Clear the input
     if (clear) this.clearInputs(targets);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target to be shown
+   * @param {HTMLElement} parent - DOM Node of the parent
+   * @param {boolean} interaction - Determines if Webflow Ix2 was found
+   */
+  showInput(target, parent, interaction, required, disabled) {
+    console.log(`Showing Input:`);
+    console.log(target);
+
+    // If parent has no Webflow Ix2 trigger, set to display block
+    if (!interaction) parent.style.display = 'block';
+
+    // Restore to stored values
+    target.required = required;
+    target.disabled = disabled;
+
+    // Update stored data
+    this.updateStoredData(target, 'visible', true);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target to be hidden
+   * @param {HTMLElement} parent - DOM Node of the parent
+   * @param {boolean} interaction - Determines if Webflow Ix2 was found
+   */
+  hideInput(target, parent, interaction) {
+    console.log(`Hiding Input:`);
+    console.log(target);
+
+    // If parent has no Webflow Ix2 trigger, set to display none
+    if (!interaction) parent.style.display = 'none';
+
+    // If hidden inputs must not be submitted, disable them.
+    if (!this.submitHidden) target.disabled = true;
+
+    // Unrequire hidden inputs to avoid form submit bugs
+    target.required = false;
+
+    // Update stored data
+    this.updateStoredData(target, 'visible', false);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target to be enabled
+   * @param {boolean} visible - Determines if the target is visible
+   */
+  enableInput(target, visible) {
+    console.log(`Enabling Input:`);
+    console.log(target);
+
+    // If target is visible, enable
+    if (visible) target.disabled = false;
+
+    // Update stored data
+    this.updateStoredData(target, 'disabled', false);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target to be disabled
+   * @param {boolean} visible - Determines if the target is visible
+   */
+  disableInput(target, visible) {
+    console.log(`Disabling Input:`);
+    console.log(target);
+
+    // If target is visible, disable
+    if (visible) target.disabled = true;
+
+    // Update stored data
+    this.updateStoredData(target, 'disabled', true);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target to be required
+   * @param {boolean} visible - Determines if the target is visible
+   */
+  requireInput(target, visible) {
+    console.log(`Requiring Input:`);
+    console.log(target);
+
+    // If target is visible, require
+    if (visible) target.required = true;
+
+    // Update stored data
+    this.updateStoredData(target, 'required', true);
+  }
+
+  /**
+   *
+   * @param {HTMLElement} target - DOM Node of the target to be unrequired
+   * @param {boolean} visible - Determines if the target is visible
+   */
+  unrequireInput(target, visible) {
+    console.log(`Unrequiring Input:`);
+    console.log(target);
+
+    // If target is visible, unrequire
+    if (visible) target.required = false;
+
+    // Update stored data
+    this.updateStoredData(target, 'required', false);
   }
 
   /**
@@ -186,203 +330,6 @@ module.exports = class {
       trigger.click();
       return true;
     } else return false;
-  }
-
-  /**
-   *
-   * @param {Array} targets - Array of elements that have to be shown
-   */
-  showInputs(targets) {
-    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
-    const triggered = [];
-
-    targets.forEach((target) => {
-      console.log(`Showing Input:`);
-      console.log(target);
-
-      // Get stored data
-      const { visible, required, disabled, parent } = this.getStoredData(
-        target
-      );
-
-      if (visible) return;
-
-      console.log(
-        `The target is visible: ${visible}, so the action is being triggered.`
-      );
-
-      // Trigger Webflow Interaction and store the parent
-      let interaction = false;
-      if (!triggered.includes(parent)) {
-        interaction = this.triggerInteraction(parent, 'show');
-        triggered.push(parent);
-        console.log(`The triggered array is `);
-        console.log(triggered);
-      }
-
-      // If parent has no Webflow Ix2 trigger, set to display block
-      if (!interaction) parent.style.display = 'block';
-
-      console.log('The target has been shown:');
-
-      // Restore to stored values
-      target.required = required;
-      target.disabled = disabled;
-
-      // Update stored data
-      this.updateStoredData(target, 'visible', true);
-    });
-  }
-
-  /**
-   *
-   * @param {Array} targets - Array of elements that have to be hidden
-   */
-  hideInputs(targets) {
-    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
-    const triggered = [];
-
-    targets.forEach((target) => {
-      console.log(`Hiding Input:`);
-      console.log(target);
-      console.log('The triggered array is:');
-      console.log(triggered);
-
-      // Get stored data
-      const { visible, parent } = this.getStoredData(target);
-
-      if (!visible) return;
-
-      // Trigger Webflow Interaction
-      let interaction = false;
-      if (!triggered.includes(parent)) {
-        interaction = this.triggerInteraction(parent, 'hide');
-        triggered.push(parent);
-      }
-
-      // If parent has no Webflow Ix2 trigger, set to display none
-      if (!interaction) parent.style.display = 'none';
-
-      // If hidden inputs must not be submitted, disable them.
-      if (!this.submitHidden) target.disabled = true;
-
-      // Unrequire hidden inputs to avoid form submit bugs
-      target.required = false;
-
-      // Update stored data
-      this.updateStoredData(target, 'visible', false);
-    });
-  }
-
-  /**
-   *
-   * @param {Array} targets - Array of elements that have to be enabled
-   */
-  enableInputs(targets) {
-    console.log('Enabling Inputs');
-
-    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
-    const triggered = [];
-
-    targets.forEach((target) => {
-      // Get stored data
-      const { visible, disabled, parent } = this.getStoredData(target);
-
-      if (!disabled) return;
-
-      if (!triggered.includes(parent)) {
-        this.triggerInteraction(parent, 'enable');
-        triggered.push(parent);
-      }
-
-      if (visible) target.disabled = false;
-
-      this.updateStoredData(target, 'disabled', false);
-    });
-  }
-
-  /**
-   *
-   * @param {Array} targets - Array of elements that have to be disabled
-   */
-  disableInputs(targets) {
-    console.log('Disabling Inputs');
-
-    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
-    const triggered = [];
-
-    targets.forEach((target) => {
-      // Get stored data
-      const { visible, disabled, parent } = this.getStoredData(target);
-
-      if (disabled) return;
-
-      // Trigger Webflow Interaction
-      if (!triggered.includes(parent)) {
-        this.triggerInteraction(parent, 'disable');
-        triggered.push(parent);
-      }
-
-      if (visible) target.disabled = true;
-
-      this.updateStoredData(target, 'disabled', true);
-    });
-  }
-
-  /**
-   *
-   * @param {Array} targets - Array of elements that have to be required
-   */
-  requireInputs(targets) {
-    console.log('Requiring Inputs');
-
-    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
-    const triggered = [];
-
-    targets.forEach((target) => {
-      // Get stored data
-      const { visible, required, parent } = this.getStoredData(target);
-
-      if (required) return;
-
-      // Trigger Webflow Interaction
-      if (!triggered.includes(parent)) {
-        this.triggerInteraction(parent, 'require');
-        triggered.push(parent);
-      }
-
-      if (visible) target.required = true;
-
-      this.updateStoredData(target, 'required', true);
-    });
-  }
-
-  /**
-   *
-   * @param {Array} targets - Array of elements that have to be unrequired
-   */
-  unrequireInputs(targets) {
-    console.log('Unrequiring Inputs');
-
-    // The parent of the triggered elements is stored to avoid triggering the interactions multiple times
-    const triggered = [];
-
-    targets.forEach((target) => {
-      // Get stored data
-      const { visible, required, parent } = this.getStoredData(target);
-
-      if (!required) return;
-
-      // Trigger Webflow Interaction
-      if (!triggered.includes(parent)) {
-        this.triggerInteraction(parent, 'unrequire');
-        triggered.push(parent);
-      }
-
-      if (visible) target.required = false;
-
-      this.updateStoredData(target, 'required', false);
-    });
   }
 
   /**
