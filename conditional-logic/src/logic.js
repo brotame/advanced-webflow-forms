@@ -1,5 +1,10 @@
 import { throwAlert } from './helpers';
 
+/**
+ * @param {Array} logicList - Array of conditions and actions to perform
+ * @param {boolean} [submitHidden = false] - Determines if hidden inputs must be submitted
+ * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
+ */
 module.exports = class {
   constructor({
     logicList,
