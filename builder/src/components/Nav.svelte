@@ -3,7 +3,7 @@
 </script>
 
 <header class="nav-wrap">
-  <a href="." class="logo-wrap w-inline-block">
+  <a href="https://brota.me/" target="_blank" class="logo-wrap w-inline-block">
     <div class="logo w-embed">
       <svg
         viewbox="0 0 128 128"
@@ -39,7 +39,8 @@
     <a
       aria-current={segment === undefined ? 'page' : undefined}
       href="."
-      class="nav-item w-inline-block w--current">
+      class="nav-item w-inline-block"
+      class:w--current={segment === undefined}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 34 30"
@@ -91,7 +92,8 @@
     <a
       aria-current={segment === 'multi-steps' ? 'page' : undefined}
       href="multi-steps"
-      class="nav-item w-inline-block">
+      class="nav-item w-inline-block"
+      class:w--current={segment === 'multi-steps'}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 42 34"
@@ -180,7 +182,8 @@
     <a
       aria-current={segment === 'conditional-logic' ? 'page' : undefined}
       href="conditional-logic"
-      class="nav-item w-inline-block">
+      class="nav-item w-inline-block"
+      class:w--current={segment === 'conditional-logic'}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 38 38"
@@ -251,7 +254,8 @@
     <a
       aria-current={segment === 'generate-code' ? 'page' : undefined}
       href="generate-code"
-      class="nav-item last w-inline-block">
+      class="nav-item last w-inline-block"
+      class:w--current={segment === 'generate-code'}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 34 30"

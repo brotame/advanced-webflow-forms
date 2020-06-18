@@ -228,12 +228,18 @@ label {
   transition: border-color 250ms ease, background-color 250ms ease;
   color: #fff;
   text-align: center;
+  cursor: pointer;
 }
 
 .button:hover {
   border-color: #88d498;
   background-color: #88d498;
   color: #fff;
+}
+
+.button:focus {
+  border-color: #88d498;
+  background-color: #88d498;
 }
 
 .button.outline {
@@ -244,6 +250,11 @@ label {
 }
 
 .button.outline:hover {
+  background-color: #88d498;
+  color: #fff;
+}
+
+.button.outline:focus {
   background-color: #88d498;
   color: #fff;
 }
@@ -1023,9 +1034,11 @@ label {
   border-width: 1px;
   border-color: #1a936f;
   border-radius: 1rem;
+  background-color: hsla(0, 0%, 100%, 0);
   -webkit-transition: color 250ms ease, background-color 250ms ease;
   transition: color 250ms ease, background-color 250ms ease;
   color: #1a936f;
+  cursor: pointer;
 }
 
 .new-button:hover {
@@ -1059,6 +1072,7 @@ label {
   -webkit-transition: background-color 250ms ease;
   transition: background-color 250ms ease;
   color: #fff;
+  cursor: pointer;
 }
 
 .control-icon.delete {
