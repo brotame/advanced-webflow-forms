@@ -1,7 +1,7 @@
 {
   "name": "conditional-logic",
   "version": "1.0.0",
-  "description": "Conditional logic for Webflow forms",
+  "description": "Conditional logic for Webflow Advanced Forms",
   "main": "logic.js",
   "scripts": {
     "dev": "parcel src/logic.js",
