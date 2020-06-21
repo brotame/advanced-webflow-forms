@@ -1,5 +1,6 @@
 <script>
-  export let segment;
+  // Routify
+  import { url, isActive } from "@sveltech/routify";
 </script>
 
 <header class="nav-wrap">
@@ -37,10 +38,10 @@
   </a>
   <nav class="nav">
     <a
-      aria-current={segment === undefined ? 'page' : undefined}
-      href="."
+      aria-current={$isActive('./index') ? 'page' : undefined}
+      href={$url('/')}
       class="nav-item w-inline-block"
-      class:w--current={segment === undefined}>
+      class:w--current={$isActive('./index')}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 34 30"
@@ -90,10 +91,10 @@
       <div class="nav-text">Intro</div>
     </a>
     <a
-      aria-current={segment === 'multi-steps' ? 'page' : undefined}
-      href="multi-steps"
+      aria-current={$isActive('./multi-steps') ? 'page' : undefined}
+      href={$url('./multi-steps')}
       class="nav-item w-inline-block"
-      class:w--current={segment === 'multi-steps'}>
+      class:w--current={$isActive('./multi-steps')}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 42 34"
@@ -180,10 +181,10 @@
       <div class="nav-text">Multi Steps</div>
     </a>
     <a
-      aria-current={segment === 'conditional-logic' ? 'page' : undefined}
-      href="conditional-logic"
+      aria-current={$isActive('./conditional-logic') ? 'page' : undefined}
+      href={$url('./conditional-logic')}
       class="nav-item w-inline-block"
-      class:w--current={segment === 'conditional-logic'}>
+      class:w--current={$isActive('./conditional-logic')}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 38 38"
@@ -252,10 +253,10 @@
       <div class="nav-text">Conditional Logic</div>
     </a>
     <a
-      aria-current={segment === 'generate-code' ? 'page' : undefined}
-      href="generate-code"
+      aria-current={$isActive('./generate-code') ? 'page' : undefined}
+      href={$url('./generate-code')}
       class="nav-item last w-inline-block"
-      class:w--current={segment === 'generate-code'}>
+      class:w--current={$isActive('./generate-code')}>
       <div class="nav-icon w-embed">
         <svg
           viewbox="0 0 34 30"

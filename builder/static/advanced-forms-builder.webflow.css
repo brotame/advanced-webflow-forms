@@ -215,10 +215,6 @@ label {
   -webkit-align-items: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-align-self: center;
-  -ms-flex-item-align: center;
-  -ms-grid-row-align: center;
-  align-self: center;
   border-style: solid;
   border-width: 1px;
   border-color: #1a936f;
@@ -244,8 +240,10 @@ label {
 
 .button.outline {
   background-color: transparent;
-  -webkit-transition: color 250ms ease, border-color 250ms ease, background-color 250ms ease;
-  transition: color 250ms ease, border-color 250ms ease, background-color 250ms ease;
+  -webkit-transition: color 250ms ease, border-color 250ms ease,
+    background-color 250ms ease;
+  transition: color 250ms ease, border-color 250ms ease,
+    background-color 250ms ease;
   color: #1a936f;
 }
 
@@ -265,6 +263,12 @@ label {
 
 .button.nav-mobile {
   display: none;
+}
+
+.button.error {
+  border-color: #ee6457;
+  background-color: #ee6457;
+  cursor: not-allowed;
 }
 
 .navbar {
@@ -729,7 +733,10 @@ label {
   right: 0%;
   bottom: 0%;
   z-index: 999;
-  display: none;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -webkit-flex-direction: column;
@@ -841,8 +848,14 @@ label {
   align-items: center;
   border-radius: 50%;
   background-color: #114b5f;
+  -webkit-transition: background-color 250ms ease;
+  transition: background-color 250ms ease;
   color: #fff;
   cursor: pointer;
+}
+
+.modal-close:hover {
+  background-color: #88d498;
 }
 
 ._w-full {
@@ -997,23 +1010,9 @@ label {
 }
 
 .main {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
+  overflow: hidden;
+  width: 100%;
+  min-height: 100vh;
 }
 
 .new-button {
@@ -1260,12 +1259,22 @@ label {
   position: absolute;
   left: 0rem;
   top: 50%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   width: 2rem;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   -webkit-transform: translate(0px, -50%);
   -ms-transform: translate(0px, -50%);
   transform: translate(0px, -50%);
   -webkit-transition: color 250ms ease;
   transition: color 250ms ease;
+  cursor: pointer;
 }
 
 .back-button:hover {
@@ -1345,6 +1354,7 @@ label {
   align-items: center;
   -webkit-transition: color 250ms ease;
   transition: color 250ms ease;
+  cursor: pointer;
 }
 
 .modal-nav:hover {
@@ -1414,6 +1424,32 @@ label {
   border-color: #1a936f;
   border-radius: 1rem;
   background-color: #fff;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.content-wrap {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  overflow: hidden;
+  min-height: 100vh;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.min-h-screen {
+  min-height: 100vh;
 }
 
 @media screen and (max-width: 991px) {
@@ -1654,13 +1690,19 @@ label {
 
 @font-face {
   font-family: 'Brownstd';
-  src: url('../fonts/BrownStd-Regular.woff2') format('woff2'), url('../fonts/BrownStd-Regular.eot') format('embedded-opentype'), url('../fonts/BrownStd-Regular.woff') format('woff'), url('../fonts/BrownStd-Regular.ttf') format('truetype'), url('../fonts/BrownStd-Regular.otf') format('opentype');
+  src: url('../fonts/BrownStd-Regular.woff2') format('woff2'),
+    url('../fonts/BrownStd-Regular.eot') format('embedded-opentype'),
+    url('../fonts/BrownStd-Regular.woff') format('woff'),
+    url('../fonts/BrownStd-Regular.ttf') format('truetype'),
+    url('../fonts/BrownStd-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
   font-family: 'Brownstd';
-  src: url('../fonts/BrownStd-Bold.eot') format('embedded-opentype'), url('../fonts/BrownStd-Bold.ttf') format('truetype'), url('../fonts/BrownStd-Bold.otf') format('opentype');
+  src: url('../fonts/BrownStd-Bold.eot') format('embedded-opentype'),
+    url('../fonts/BrownStd-Bold.ttf') format('truetype'),
+    url('../fonts/BrownStd-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
 }
