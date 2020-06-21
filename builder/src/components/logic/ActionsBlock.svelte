@@ -97,7 +97,7 @@
     {#if index !== 0}
       <div
         class="control-icon delete ml-4"
-        on:click={() => dispatch('removeaction', index)}>
+        on:click={() => dispatch('removeaction', action)}>
         <div class="small-icon ">
           <svg
             viewbox="0 0 448 96"

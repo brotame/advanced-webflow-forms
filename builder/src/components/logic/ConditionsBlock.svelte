@@ -5,6 +5,153 @@
   // Exports
   export let condition, index;
 
+  // Variables
+  const types = [
+    {
+      name: "Plain / Textarea Field",
+      value: "text"
+    },
+    {
+      name: "Email Field",
+      value: "email"
+    },
+    {
+      name: "Password Field",
+      value: "password"
+    },
+    {
+      name: "Phone Field",
+      value: "phone"
+    },
+    {
+      name: "Number Field",
+      value: "number"
+    },
+    {
+      name: "Select Field",
+      value: "select"
+    },
+    {
+      name: "Checkbox",
+      value: "checkbox"
+    },
+    {
+      name: "Radio Group",
+      value: "radios"
+    }
+  ];
+
+  const operators = [
+    {
+      name: "Be Equal To",
+      value: "equal",
+      compatibleTypes: [
+        "text",
+        "email",
+        "password",
+        "phone",
+        "number",
+        "select",
+        "radios"
+      ]
+    },
+    {
+      name: "Not Be Equal To",
+      value: "not-equal",
+      compatibleTypes: [
+        "text",
+        "email",
+        "password",
+        "phone",
+        "number",
+        "select",
+        "radios"
+      ]
+    },
+    {
+      name: "Contain",
+      value: "contain",
+      compatibleTypes: [
+        "text",
+        "email",
+        "password",
+        "phone",
+        "number",
+        "select",
+        "radios"
+      ]
+    },
+    {
+      name: "Not Contain",
+      value: "not-contain",
+      compatibleTypes: [
+        "text",
+        "email",
+        "password",
+        "phone",
+        "number",
+        "select",
+        "radios"
+      ]
+    },
+    {
+      name: "Be Empty",
+      value: "empty",
+      compatibleTypes: [
+        "text",
+        "email",
+        "password",
+        "phone",
+        "number",
+        "select",
+        "radios"
+      ]
+    },
+    {
+      name: "Be Filled",
+      value: "filled",
+      compatibleTypes: [
+        "text",
+        "email",
+        "password",
+        "phone",
+        "number",
+        "select",
+        "radios"
+      ]
+    },
+    {
+      name: "Be Greater Than",
+      value: "greater",
+      compatibleTypes: ["number"]
+    },
+    {
+      name: "Be Greater or Equal Than",
+      value: "greater-equal",
+      compatibleTypes: ["number"]
+    },
+    {
+      name: "Be Less Than",
+      value: "less",
+      compatibleTypes: ["number"]
+    },
+    {
+      name: "Be Less or Equal Than",
+      value: "greater-equal",
+      compatibleTypes: ["number"]
+    },
+    {
+      name: "Be Checked",
+      value: "checked",
+      compatibleTypes: ["checkbox"]
+    },
+    {
+      name: "Not Be Checked",
+      value: "not-checked",
+      compatibleTypes: ["checkbox"]
+    }
+  ];
+
   // Functions
   const dispatch = createEventDispatcher();
 
@@ -34,14 +181,10 @@
             updateSelector();
             dispatch('inputchange');
           }}>
-          <option value="text">Plain / Textarea Field</option>
-          <option value="email">Email Field</option>
-          <option value="password">Password Field</option>
-          <option value="phone">Phone Field</option>
-          <option value="number">Number Field</option>
-          <option value="select">Select Field</option>
-          <option value="checkbox">Checkbox</option>
-          <option value="radios">Radio Group</option>
+
+          {#each types as type}
+            <option value={type.value}>{type.name}</option>
+          {/each}
         </select>
       </div>
 
@@ -75,36 +218,33 @@
           on:input={() => {
             dispatch('inputchange');
           }}>
-          <option value="equal">Be Equal To</option>
-          <option value="not-equal">Not Be Equal To</option>
-          <option value="contain">Contain</option>
-          <option value="not-contain">Not Contain</option>
-          <option value="greater">Be Greater Than</option>
-          <option value="select">Be Greater or Equal Than</option>
-          <option value="less">Be Less Than</option>
-          <option value="less-equal">Be Less or Equal Than</option>
-          <option value="empty">Be Empty</option>
-          <option value="filled">Be Filled</option>
-          <option value="checked">Be Checked</option>
-          <option value="not-checked">Not Be Checked</option>
+
+          {#each operators as operator}
+            {#if operator.compatibleTypes.includes(condition.type)}
+              <option value={operator.value}>{operator.name}</option>
+            {/if}
+          {/each}
         </select>
       </div>
 
       <!-- Value Input -->
-      <div class="hflex-c-s">
-        <label for={`value-${index}`} class="mr-2">the value</label>
-        <input
-          type="text"
-          class="input-field flex-grow w-input"
-          maxlength="256"
-          name="Condition Value"
-          placeholder="Your Value"
-          id={`value-${index}`}
-          bind:value={condition.value}
-          on:input={() => {
-            dispatch('inputchange');
-          }} />
-      </div>
+      {#if condition.type !== 'checkbox'}
+        <div class="hflex-c-s">
+          <label for={`value-${index}`} class="mr-2">the value</label>
+          <input
+            type="text"
+            class="input-field flex-grow w-input"
+            maxlength="256"
+            name="Condition Value"
+            placeholder="Your Value"
+            id={`value-${index}`}
+            bind:value={condition.value}
+            on:input={() => {
+              dispatch('inputchange');
+            }} />
+        </div>
+      {/if}
+
     </div>
   </div>
 
@@ -134,7 +274,7 @@
     {#if index !== 0}
       <div
         class="control-icon delete ml-4"
-        on:click={() => dispatch('removecondition', index)}>
+        on:click={() => dispatch('removecondition', condition)}>
         <div class="small-icon ">
           <svg
             viewbox="0 0 448 96"

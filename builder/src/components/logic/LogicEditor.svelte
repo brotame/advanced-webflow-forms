@@ -74,11 +74,11 @@
   }
 
   function removeCondition(e) {
-    conditions = conditions.filter((condition, index) => index !== e.detail);
+    conditions = conditions.filter(condition => condition !== e.detail);
   }
 
   function removeAction(e) {
-    actions = actions.filter((action, index) => index !== e.detail);
+    actions = actions.filter(action => action !== e.detail);
   }
 </script>
 
@@ -120,6 +120,7 @@
 
       <!-- Operator Select -->
       <div class="hflex-c-s my-8">
+
         {#if conditions.length > 1}
           <label for="operator" class="bold">If</label>
           <select
@@ -136,6 +137,7 @@
             If the condition is met, then do the following actions:
           </div>
         {/if}
+
       </div>
 
       <!-- Actions -->
