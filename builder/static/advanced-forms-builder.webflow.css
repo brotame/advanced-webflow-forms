@@ -733,10 +733,7 @@ label {
   right: 0%;
   bottom: 0%;
   z-index: 999;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
+  display: none;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -webkit-flex-direction: column;
@@ -1419,11 +1416,9 @@ label {
   position: relative;
   overflow: auto;
   padding: 2rem;
-  border-style: solid;
-  border-width: 1px;
-  border-color: #1a936f;
   border-radius: 1rem;
   background-color: #fff;
+  box-shadow: 0 8px 16px 0 rgba(17, 75, 95, 0.1);
 }
 
 .capitalize {

@@ -11,10 +11,10 @@
 
     setTimeout(() => {
       enableScroll();
-    }, 400);
+    }, 500);
   });
 </script>
 
-<div transition:fade={{ duration: 200, delay: 200 }} class="content-wrap">
+<div transition:fade={{ duration: 250, delay: 250 }} class="content-wrap">
   <slot />
 </div>

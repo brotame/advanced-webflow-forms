@@ -2,17 +2,17 @@ import { throwAlert } from './helpers';
 
 /**
  * @param {Array} logicList - Array of conditions and actions to perform
- * @param {boolean} [submitHidden = false] - Determines if hidden inputs must be submitted
+ * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
  * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
  */
 module.exports = class {
   constructor({
     logicList,
-    submitHidden = false,
+    submitHiddenInputs = false,
     checkConditionsOnLoad = true,
   }) {
     this.logicList = logicList;
-    this.submitHidden = submitHidden;
+    this.submitHiddenInputs = submitHiddenInputs;
     this.checkConditionsOnLoad = checkConditionsOnLoad;
     this.store = [];
   }
@@ -47,7 +47,6 @@ module.exports = class {
     let pass = false;
 
     for (let condition of conditions) {
-      // PENDENT DE FER QUE SI EL SELECTOR ÉS UN GRUP DE RADIOS, QUE SIGUI 'input[name"RADIO_GROUP"]:checked'
       const element = document.querySelector(condition.selector);
 
       // Get value of the origin
@@ -227,7 +226,7 @@ module.exports = class {
     if (!interactionExists && notTriggered) parent.style.display = 'none';
 
     // If hidden inputs must not be submitted, disable them.
-    if (!this.submitHidden) target.disabled = true;
+    if (!this.submitHiddenInputs) target.disabled = true;
 
     // Unrequire hidden inputs to avoid form submit bugs
     target.required = false;

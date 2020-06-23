@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 
 const defaults = [
   {
@@ -37,21 +37,52 @@ const defaults = [
   },
 ];
 
-const store = writable(defaults);
+const logicStore = writable(defaults);
 
-const customStore = {
-  subscribe: store.subscribe,
+const customLogicStore = {
+  subscribe: logicStore.subscribe,
   add: (newLogic) => {
-    store.update((items) => [...items, newLogic]);
+    logicStore.update((items) => [...items, newLogic]);
   },
   modify: (data) => {
-    store.update((items) =>
+    logicStore.update((items) =>
       items.map((item) => (item.id === data.id ? { ...item, ...data } : item))
     );
   },
   remove: (id) => {
-    store.update((items) => items.filter((item) => item.id !== id));
+    logicStore.update((items) => items.filter((item) => item.id !== id));
   },
 };
 
-export default customStore;
+export default customLogicStore;
+
+export const logicParams = writable({
+  submitHiddenInputs: false,
+  checkConditionsOnLoad: true,
+});
+
+export const logicExport = derived(
+  [logicStore, logicParams],
+  ([$logicStore, $logicParams]) => {
+    const newStore = [...$logicStore];
+
+    newStore.forEach((logic) => {
+      delete logic.id;
+
+      logic.conditions.forEach((condition) => {
+        delete condition.selectorString;
+        delete condition.type;
+      });
+
+      logic.actions.forEach((action) => {
+        delete action.selectorString;
+      });
+    });
+
+    return {
+      logicList: newStore,
+      submitHiddenInputs: $logicParams.submitHiddenInputs,
+      checkConditionsOnLoad: $logicParams.checkConditionsOnLoad,
+    };
+  }
+);

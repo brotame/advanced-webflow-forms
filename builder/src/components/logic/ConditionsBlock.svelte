@@ -154,15 +154,6 @@
 
   // Functions
   const dispatch = createEventDispatcher();
-
-  function updateSelector() {
-    if (!condition.selectorString) return;
-
-    condition.selector =
-      condition.type === "radios"
-        ? `input[name="${condition.selectorString}"]:checked`
-        : `#${condition.selectorString}`;
-  }
 </script>
 
 <div class="hflex-c-s mb-4">
@@ -178,7 +169,7 @@
           class="input-field flex-grow w-select"
           bind:value={condition.type}
           on:input={() => {
-            updateSelector();
+            dispatch('updateselector', { index, from: 'condition' });
             dispatch('inputchange');
           }}>
 
@@ -202,7 +193,7 @@
           id={`selector-${index}`}
           bind:value={condition.selectorString}
           on:input={() => {
-            updateSelector();
+            dispatch('updateselector', { index, from: 'condition' });
             dispatch('inputchange');
           }} />
       </div>
@@ -216,6 +207,7 @@
           class="input-field flex-grow w-select"
           bind:value={condition.operator}
           on:input={() => {
+            dispatch('operatorchange', index);
             dispatch('inputchange');
           }}>
 

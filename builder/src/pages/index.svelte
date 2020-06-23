@@ -1,21 +1,23 @@
 <script>
   // Routify
-  import { url } from "@sveltech/routify";
+  import { url, goto } from "@sveltech/routify";
+
+  // Components
+  import Hero from "../components/Hero.svelte";
+
+  // Functions
+  function startBuilder() {
+    $goto("/conditional-logic");
+  }
 </script>
 
 <section class="section">
-  <div class="container max-w-xl vflex-c-c center">
-    <h1 class="mb-4">Webflow Advanced Forms</h1>
-    <p class="mb-8">
-      This is a beta version of the builder for testing purposes. The Multi
-      Steps builder is not ready yet, but you can start playing around with the
-      Conditional Logic.
-    </p>
-    <div class="hero-buttons">
-      <a href={$url('conditional-logic')} class="button w-button">
-        Get Started!
-      </a>
-      <a href="." class="button outline w-button">Watch Tutorials</a>
-    </div>
-  </div>
+  <Hero
+    title="Webflow Advanced Forms"
+    subtitle="This is a beta version of the builder for testing purposes. The
+    Multi Steps builder is not ready yet, but you can start playing around with
+    the Conditional Logic."
+    primaryText="Get Started!"
+    secondaryText="Watch Tutorials"
+    on:primaryclick={startBuilder} />
 </section>

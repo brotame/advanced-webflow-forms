@@ -10,6 +10,7 @@
   import logicStore from "../../stores/logic-store";
 
   // Components
+  import Hero from "../../components/Hero.svelte";
   import Modal from "../../components/Modal.svelte";
   import ModalContent from "../../components/ModalContent.svelte";
   import LogicList from "../../components/logic/LogicList.svelte";
@@ -55,8 +56,6 @@
 
   // Conext
   setContext("edit", editLogic);
-
-  console.log(introSlides);
 </script>
 
 <svelte:head>
@@ -64,23 +63,26 @@
 </svelte:head>
 
 {#if editMode}
-  <div>
+  <section class="section min-h-screen" transition:fade={{ duration: 250 }}>
     <LogicEditor on:cancel={cancelEdit} {editID} />
-  </div>
+  </section>
 {:else}
-  <LogicList
-    on:newLogic={newLogic}
-    on:openmodal={() => {
-      showModal = true;
-    }} />
+  <section class="section" transition:fade={{ duration: 250 }}>
+    <Hero
+      title="Conditional Logic"
+      subtitle="Here you can build all the conditions and actions that you want
+      to add to the form."
+      primaryText="Quick Intro"
+      secondaryText="Watch Tutorials"
+      on:primaryclick={openModal} />
+
+    <LogicList on:newLogic={newLogic} />
+  </section>
 {/if}
 
 {#if showModal}
   <div transition:fade={{ duration: 100 }}>
-    <Modal
-      on:closemodal={() => {
-        showModal = false;
-      }}>
+    <Modal on:closemodal={closeModal}>
 
       <ModalContent
         {...introSlides[currentModalSlide]}

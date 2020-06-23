@@ -8,11 +8,7 @@
   // Functions
   const dispatch = createEventDispatcher();
 
-  function updateSelector() {
-    if (!action.selectorString) return;
-
-    action.selector = `#${action.selectorString}`;
-  }
+  console.log(action);
 </script>
 
 <div class="hflex-c-s mb-4">
@@ -54,6 +50,7 @@
           id={`action-selector-${index}`}
           bind:value={action.selectorString}
           on:input={() => {
+            dispatch('updateselector', { index, from: 'action' });
             dispatch('inputchange');
           }} />
       </div>
