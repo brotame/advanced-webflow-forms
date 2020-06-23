@@ -21,6 +21,8 @@
     if (operator === "less-equal") return "is less or equal to";
     if (operator === "empty") return "is empty";
     if (operator === "filled") return "is filled";
+    if (operator === "checked") return "is checked";
+    if (operator === "not-checked") return "is not checked";
   }
 </script>
 
@@ -30,9 +32,9 @@
     {#each conditions as condition, index}
       <div class="mb-2">
         <strong class="capitalize">{index === 0 ? 'If' : operator}</strong>
-        {condition.selectorString}
+        {condition.selector}
         <span class="sea-green">{convertOperator(condition.operator)}</span>
-        {condition.value}
+        {#if condition.value}{condition.value}{/if}
       </div>
     {/each}
 
@@ -41,7 +43,7 @@
     {#each actions as action, index}
       <div class={index < actions.length - 1 ? 'mb-2' : ''}>
         <span class="sea-green capitalize">{action.action}</span>
-        {action.selectorString} {action.clear ? 'and clear its value' : ''}
+        {action.selector} {action.clear ? 'and clear its value' : ''}
       </div>
     {/each}
   </div>

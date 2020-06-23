@@ -5,16 +5,14 @@ const defaults = [
     id: 'f0df0eeb-e65a-45c4-8d08-fdebcf6ad2d1',
     conditions: [
       {
-        selector: '#options',
-        selectorString: 'options',
+        selector: 'options',
         type: 'text',
         operator: 'not-equal',
         value: 'Contact Info',
       },
       {
-        selector: '#demo',
-        selectorString: 'demo',
-        type: 'select',
+        selector: 'demo',
+        type: 'radios',
         operator: 'greater-equal',
         value: '10',
       },
@@ -22,14 +20,12 @@ const defaults = [
     operator: 'or',
     actions: [
       {
-        selector: '#contact-info',
-        selectorString: 'contact-info',
+        selector: 'contact-info',
         action: 'hide',
         clear: false,
       },
       {
-        selector: '#test',
-        selectorString: 'test',
+        selector: 'test',
         action: 'disable',
         clear: true,
       },
@@ -64,18 +60,31 @@ export const logicParams = writable({
 export const logicExport = derived(
   [logicStore, logicParams],
   ([$logicStore, $logicParams]) => {
-    const newStore = [...$logicStore];
+    const newStore = JSON.parse(JSON.stringify($logicStore));
 
     newStore.forEach((logic) => {
       delete logic.id;
 
       logic.conditions.forEach((condition) => {
-        delete condition.selectorString;
+        condition.type === 'radios'
+          ? (condition.selector = `input[name="${condition.selector}"]:checked`)
+          : (condition.selector = `#${condition.selector}`);
+
+        if (condition.operator === 'checked') {
+          condition.operator = 'equal';
+          condition.value = true;
+        }
+
+        if (condition.operator === 'not-checked') {
+          condition.operator = 'equal';
+          condition.value = false;
+        }
+
         delete condition.type;
       });
 
       logic.actions.forEach((action) => {
-        delete action.selectorString;
+        action.selector = `#${action.selector}`;
       });
     });
 

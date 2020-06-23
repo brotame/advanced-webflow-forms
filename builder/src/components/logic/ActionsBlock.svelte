@@ -48,9 +48,8 @@
           name="Action Selector"
           placeholder="your-target"
           id={`action-selector-${index}`}
-          bind:value={action.selectorString}
+          bind:value={action.selector}
           on:input={() => {
-            dispatch('updateselector', { index, from: 'action' });
             dispatch('inputchange');
           }} />
       </div>

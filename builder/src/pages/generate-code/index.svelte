@@ -1,4 +1,7 @@
 <script>
+  // Imports
+  import stringifyObject from "stringify-object";
+
   // Stores
   import logicStore, {
     logicParams,
@@ -10,10 +13,24 @@
   import CodeBox from "../../components/code/CodeBox.svelte";
 
   //Variables
-  let generatedCode = $logicExport;
+  let generatedCode = `
+  <script>
+  var Webflow = Webflow || [];
+  Webflow.push(function () {
+    var conditionalLogic = new ConditionalLogic(${stringifyObject(
+      $logicExport,
+      {
+        inlineCharacterLimit: 9999
+      }
+    )});
+    conditionalLogic.init();
+  )};
+  <\/script>
+  `;
   let logicExists = $logicStore.length > 0 ? true : false;
 
   // Functions
+  console.log($logicExport);
 </script>
 
 <section class="section">
@@ -25,5 +42,5 @@
 </section>
 
 <section class="section">
-  <CodeBox>{JSON.stringify(generatedCode)}</CodeBox>
+  <CodeBox>{generatedCode}</CodeBox>
 </section>

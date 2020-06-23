@@ -17,54 +17,29 @@
   export let editID;
 
   // Variables
-  let storedLogic;
-  let conditions = [{}];
-  let operator = "and";
-  let actions = [{ clear: false }];
   let missingCondition, missingAction, triedToSubmit;
+  let logic = {
+    id: uuidv4(),
+    conditions: [{}],
+    operator: "and",
+    actions: [{}]
+  };
 
   // Reactive
-  $: if (editID) storedLogic = $logicStore.find(logic => logic.id === editID);
-  $: if (storedLogic) conditions = storedLogic.conditions;
-  $: if (storedLogic) operator = storedLogic.operator;
-  $: if (storedLogic) actions = storedLogic.actions;
+  $: if (editID) logic = $logicStore.find(logic => logic.id === editID);
 
   // Functions
   const dispatch = createEventDispatcher();
 
-  function updateSelector(e) {
-    const target =
-      e.detail.from === "condition"
-        ? conditions[e.detail.index]
-        : actions[e.detail.index];
-
-    if (!target.selectorString) return;
-
-    target.selector =
-      target.type === "radios"
-        ? `input[name="${target.selectorString}"]:checked`
-        : `#${target.selectorString}`;
-  }
-
-  function handleConditionOperator(e) {
-    const condition = conditions[e.detail];
-
-    if (condition.operator === "checked") condition.value = true;
-    if (condition.operator === "not-checked") condition.value = false;
-  }
-
   function checkFilledInputs() {
-    console.log(conditions);
-    conditions.forEach(condition => {
+    console.log(logic);
+    logic.conditions.forEach(condition => {
       missingCondition =
-        !condition.type ||
-        !condition.selectorString ||
-        !condition.operator ||
-        !condition.value;
+        !condition.type || !condition.selector || !condition.operator;
     });
 
-    actions.forEach(action => {
-      missingAction = !action.selectorString || !action.action;
+    logic.actions.forEach(action => {
+      missingAction = !action.selector || !action.action;
     });
   }
 
@@ -75,32 +50,30 @@
 
     if (missingCondition || missingAction) return;
 
-    if (editID)
-      logicStore.modify({ id: editID, conditions, operator, actions });
-    else logicStore.add({ id: uuidv4(), conditions, operator, actions });
+    if (editID) logicStore.modify(logic);
+    else logicStore.add(logic);
 
     dispatch("cancel");
 
-    console.log(storedLogic);
-    console.log(conditions);
-    console.log(operator);
-    console.log(actions);
+    console.log(logic);
   }
 
   function addCondition() {
-    conditions = [...conditions, {}];
+    logic.conditions = [...logic.conditions, {}];
   }
 
   function addAction() {
-    actions = [...actions, { clear: false }];
+    logic.actions = [...logic.actions, { clear: false }];
   }
 
   function removeCondition(e) {
-    conditions = conditions.filter(condition => condition !== e.detail);
+    logic.conditions = logic.conditions.filter(
+      condition => condition !== e.detail
+    );
   }
 
   function removeAction(e) {
-    actions = actions.filter(action => action !== e.detail);
+    logic.actions = logic.actions.filter(action => action !== e.detail);
   }
 </script>
 
@@ -128,31 +101,31 @@
   <form id="logic-editor" name="Logic Editor">
 
     <!-- Conditions -->
-    {#each conditions as condition, index}
+    {#each logic.conditions as condition, index}
       <div transition:fade={{ duration: 250 }}>
         <ConditionsBlock
           {condition}
           {index}
           on:addcondition={addCondition}
           on:removecondition={removeCondition}
-          on:inputchange={checkFilledInputs}
-          on:updateselector={updateSelector}
-          on:operatorchange={handleConditionOperator} />
+          on:inputchange={checkFilledInputs} />
       </div>
     {/each}
 
     <!-- Operator Select -->
     <div class="hflex-c-s my-8">
 
-      {#if conditions.length > 1}
+      {#if logic.conditions.length > 1}
         <label for="operator" class="bold">If</label>
         <select
           id="operator"
           name="Operator"
           class="input-field _w-auto mx-2 w-select"
-          bind:value={operator}>
+          bind:value={logic.operator}>
+
           <option value="and">All Conditions Are Met</option>
           <option value="or">One Condition Is Met</option>
+
         </select>
         <div class="bold">then do the following actions:</div>
       {:else}
@@ -164,7 +137,7 @@
     </div>
 
     <!-- Actions -->
-    {#each actions as action, index}
+    {#each logic.actions as action, index}
       <div transition:fade={{ duration: 250 }}>
         <ActionsBlock
           {action}

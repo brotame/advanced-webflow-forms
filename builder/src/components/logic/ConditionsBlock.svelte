@@ -152,8 +152,24 @@
     }
   ];
 
+  // Reactive
+  $: if (
+    condition.operator === "empty" ||
+    condition.operator === "filled" ||
+    condition.type === "checkbox"
+  )
+    delete condition.value;
+
+  $: filteredOperators = operators.filter(operator =>
+    operator.compatibleTypes.includes(condition.type)
+  );
+
   // Functions
   const dispatch = createEventDispatcher();
+
+  function resetOperator() {
+    condition.operator = "";
+  }
 </script>
 
 <div class="hflex-c-s mb-4">
@@ -163,13 +179,14 @@
       <!-- Type Select -->
       <div class="hflex-c-s">
         <label for={`type-${index}`} class="mr-2">The</label>
+
         <select
           id={`type-${index}`}
           name="Condition Origin Type"
           class="input-field flex-grow w-select"
           bind:value={condition.type}
           on:input={() => {
-            dispatch('updateselector', { index, from: 'condition' });
+            resetOperator();
             dispatch('inputchange');
           }}>
 
@@ -184,6 +201,7 @@
         <label for={`selector-${index}`} class="mr-2">
           {condition.type === 'radios' ? 'which Group Name is' : 'which ID is'}
         </label>
+
         <input
           type="text"
           class="input-field flex-grow w-input"
@@ -191,9 +209,8 @@
           name="Condition Selector"
           placeholder="your-element"
           id={`selector-${index}`}
-          bind:value={condition.selectorString}
+          bind:value={condition.selector}
           on:input={() => {
-            dispatch('updateselector', { index, from: 'condition' });
             dispatch('inputchange');
           }} />
       </div>
@@ -201,28 +218,28 @@
       <!-- Condition Operator Select -->
       <div class="hflex-c-s">
         <label for={`operator-${index}`} class="mr-2">must</label>
+
         <select
           id={`operator-${index}`}
           name="Condition Operator"
           class="input-field flex-grow w-select"
           bind:value={condition.operator}
           on:input={() => {
-            dispatch('operatorchange', index);
             dispatch('inputchange');
           }}>
 
-          {#each operators as operator}
-            {#if operator.compatibleTypes.includes(condition.type)}
-              <option value={operator.value}>{operator.name}</option>
-            {/if}
+          <option value="" disabled>-- Choose Operator --</option>
+          {#each filteredOperators as operator (operator.name)}
+            <option value={operator.value}>{operator.name}</option>
           {/each}
         </select>
       </div>
 
       <!-- Value Input -->
-      {#if condition.type !== 'checkbox'}
+      {#if condition.type !== 'checkbox' && condition.operator !== 'empty' && condition.operator !== 'filled'}
         <div class="hflex-c-s">
           <label for={`value-${index}`} class="mr-2">the value</label>
+
           <input
             type="text"
             class="input-field flex-grow w-input"
@@ -234,6 +251,7 @@
             on:input={() => {
               dispatch('inputchange');
             }} />
+
         </div>
       {/if}
 
