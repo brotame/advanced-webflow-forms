@@ -4,7 +4,6 @@
   "description": "Conditional logic for Webflow Advanced Forms",
   "main": "logic.js",
   "scripts": {
-    "dev": "parcel src/logic.js",
     "build": "parcel build src/logic.js --no-source-maps --no-cache --global ConditionalLogic"
   },
   "author": "Alex Iglesias",

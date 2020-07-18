@@ -1,11 +1,11 @@
 import { throwAlert } from './helpers';
 
-/**
- * @param {Array} logicList - Array of conditions and actions to perform
- * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
- * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
- */
 module.exports = class {
+  /**
+   * @param {Array} logicList - Array of conditions and actions to perform
+   * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
+   * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
+   */
   constructor({
     logicList,
     submitHiddenInputs = false,
@@ -15,6 +15,7 @@ module.exports = class {
     this.submitHiddenInputs = submitHiddenInputs;
     this.checkConditionsOnLoad = checkConditionsOnLoad;
     this.store = [];
+    this.init();
   }
 
   /**
@@ -400,8 +401,6 @@ module.exports = class {
   }
 
   init() {
-    console.log('Conditional Logic loaded!');
-
     this.logicList.forEach((logic) => {
       // Add event listeners to all conditions origin
       this.addEvents(logic);

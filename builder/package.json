@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@sveltech/routify": "^1.9.2",
+    "clipboard": "^2.0.6",
     "stringify-object": "^3.3.0",
     "svelte": "^3.24.0"
   }
