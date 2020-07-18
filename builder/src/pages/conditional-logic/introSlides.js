@@ -17,7 +17,7 @@ const introSlides = [
     <li><strong>Name:</strong> data-logic</li>
     <li><strong>Value:</strong> parent</li>
   </ul>`,
-    image: 'images/logo-512.png',
+    image: 'conditional-logic/logic-modal-1.gif',
   },
   {
     title: 'Tip!',
@@ -34,7 +34,7 @@ const introSlides = [
     <em>Div Block</em> which ID is
     <span class="opacity-75">contact-info</span>.<br />
   </p>`,
-    image: 'images/logo-512.png',
+    image: 'conditional-logic/logic-modal-2.gif',
   },
   {
     title: 'Step 2',
@@ -43,7 +43,7 @@ const introSlides = [
       If the target of an action is a single input, use its ID.<br />
     </p>
     <p class="text-sm pl-4">
-      <strong>E.g.</strong> <span class="opacity-75">phone</span><br />
+      <strong>E.g.</strong> <span class="opacity-75">Name</span><br />
     </p>
     <p class="mb-1">
       If the target is a group of inputs, use the ID of the parent that
@@ -58,7 +58,7 @@ const introSlides = [
       <em>Div Block</em> must have the custom attribute
       <span class="opacity-75">data-logic = parent</span>.
     </p>`,
-    image: 'images/logo-512.png',
+    image: 'conditional-logic/logic-modal-3.gif',
   },
   {
     title: 'Step 3 (Optional)',
