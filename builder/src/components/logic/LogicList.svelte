@@ -3,10 +3,11 @@
   import { createEventDispatcher } from "svelte";
 
   // Store
-  import logicStore, { logicParams } from "../../stores/logic-store";
+  import logicStore from "../../stores/logic-store";
 
   // Imports
   import LogicBlock from "./LogicBlock.svelte";
+  import GlobalOptions from "./GlobalOptions.svelte";
 
   // Icons
   import AddIcon from "../../icons/add-icon.svg";
@@ -20,10 +21,14 @@
 </script>
 
 <div class="container max-w-2xl">
-  <div class="logic-block-divider my-12" />
-  <div class="vflex-str-s">
-    <div class="hflex-c-sb mb-8">
 
+  <!-- Divider -->
+  <div class="logic-block-divider my-12" />
+
+  <!-- Content -->
+  <div class="vflex-str-s">
+
+    <div class="hflex-c-sb mb-8">
       <!-- New Logic Button -->
       <div class="new-button" on:click={() => dispatch('newLogic')}>
         <div class="small-icon mr-4">
@@ -33,35 +38,7 @@
       </div>
 
       <!-- Global Options -->
-      <div>
-        <div class="bold mb-3">Global Options:</div>
-
-        <!-- Submit Hidden Inputs -->
-        <label class="w-checkbox mb-2">
-          <input
-            type="checkbox"
-            id="submitHidden"
-            name="Submit-Hidden"
-            class="w-checkbox-input checkbox"
-            bind:checked={$logicParams.submitHiddenInputs} />
-          <span for="Submit Hidden" class="w-form-label">
-            Submit hidden inputs
-          </span>
-        </label>
-
-        <!-- Check Conditions On Load -->
-        <label class="w-checkbox">
-          <input
-            type="checkbox"
-            id="checkConditionsOnLoad"
-            name="Check-Conditions-On-Load"
-            class="w-checkbox-input checkbox"
-            bind:checked={$logicParams.checkConditionsOnLoad} />
-          <span for="Check Conditions On Load" class="w-form-label">
-            Check conditions on load
-          </span>
-        </label>
-      </div>
+      <GlobalOptions />
     </div>
 
     {#each $logicStore as logic, index (logic.id)}

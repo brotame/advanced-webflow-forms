@@ -54,20 +54,26 @@
     currentModalSlide -= 1;
   }
 
-  // Conext
+  // Context
   setContext("edit", editLogic);
 </script>
 
+<!-- Head -->
 <svelte:head>
   <title>Conditional Logic</title>
 </svelte:head>
 
+<!-- Logic Editor -->
 {#if editMode}
   <section class="section min-h-screen" transition:fade={{ duration: 250 }}>
     <LogicEditor on:cancel={cancelEdit} {editID} />
   </section>
+
+  <!-- Main Content -->
 {:else}
   <section class="section" transition:fade={{ duration: 250 }}>
+
+    <!-- Hero -->
     <Hero
       title="Conditional Logic"
       subtitle="Here you can build all the conditions and actions that you want
@@ -76,10 +82,12 @@
       secondaryText="Watch Tutorials"
       on:primaryclick={openModal} />
 
+    <!-- Logic List -->
     <LogicList on:newLogic={newLogic} />
   </section>
 {/if}
 
+<!-- Modal -->
 {#if showModal}
   <div transition:fade={{ duration: 100 }}>
     <Modal on:closemodal={closeModal}>
