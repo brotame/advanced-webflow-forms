@@ -5,6 +5,10 @@
   // Exports
   export let action, index;
 
+  // Icons
+  import AddIcon from "../../icons/add-icon.svg";
+  import RemoveIcon from "../../icons/remove-icon.svg";
+
   // Functions
   const dispatch = createEventDispatcher();
 
@@ -75,17 +79,7 @@
       class="control-icon add ml-4 mb-4"
       on:click={() => dispatch('addaction')}>
       <div class="small-icon ">
-        <svg
-          viewbox="0 0 448 448"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M416 176H272V32C272 14.33 257.67 0 240 0H208C190.33 0 176 14.33
-            176 32V176H32C14.33 176 0 190.33 0 208V240C0 257.67 14.33 272 32
-            272H176V416C176 433.67 190.33 448 208 448H240C257.67 448 272 433.67
-            272 416V272H416C433.67 272 448 257.67 448 240V208C448 190.33 433.67
-            176 416 176Z" />
-        </svg>
+        <AddIcon />
       </div>
     </div>
 
@@ -95,14 +89,7 @@
         class="control-icon delete ml-4"
         on:click={() => dispatch('removeaction', action)}>
         <div class="small-icon ">
-          <svg
-            viewbox="0 0 448 96"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M416 0H32C14.33 0 0 14.33 0 32V64C0 81.67 14.33 96 32
-              96H416C433.67 96 448 81.67 448 64V32C448 14.33 433.67 0 416 0Z" />
-          </svg>
+          <RemoveIcon />
         </div>
       </div>
     {/if}

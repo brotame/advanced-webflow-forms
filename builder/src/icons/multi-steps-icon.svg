@@ -1,0 +1,81 @@
+<svg
+    viewbox="0 0 42 34"
+    stroke="currentColor"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg">
+    <path
+    d="M0.800049 27.7H8.80005"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M8.80005 24.8H0.800049V32.8H8.80005V24.8Z"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M16.8 27.7H24.8"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M24.8 24.8H16.8V32.8H24.8V24.8Z"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M32.8 27.7H40.8"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M40.8 24.8H32.8V32.8H40.8V24.8Z"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M20.8 19.8V24.8"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M10.6 17.6L6.49995 19.9C5.39995 20.5 4.69995 21.7 4.69995 23V24.8"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M30.9001 17.6L35.0001 19.9C36.1001 20.5 36.8001 21.7 36.8001
+    23V24.8"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M21.2001 11.8C18.1001 12 16.6001 8.4 19.0001 6.4C19.4001 6.1
+    19.9001 5.9 20.4001 5.8C23.5001 5.6 25.0001 9.2 22.6001 11.2C22.2001
+    11.5 21.7001 11.7 21.2001 11.8Z"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+    <path
+    d="M27.2 7.2C27 6.5 26.7 5.8 26.4 5.2L27.2 3.9L25.6 2.3L24.3
+    3.1C23.7 2.7 23 2.4 22.3 2.3L21.9 0.800003H19.6L19.2 2.3C18.5 2.5
+    17.8 2.8 17.2 3.1L15.9 2.3L14.3 3.9L15.1 5.2C14.7 5.8 14.4 6.5 14.3
+    7.2L12.8 7.6V9.9L14.3 10.3C14.5 11 14.8 11.7 15.1 12.3L14.3
+    13.6L15.9 15.2L17.2 14.4C17.8 14.8 18.5 15.1 19.2 15.2L19.6
+    16.7H21.9L22.3 15.2C23 15 23.7 14.7 24.3 14.4L25.6 15.2L27.2
+    13.6L26.4 12.3C26.8 11.7 27.1 11 27.2 10.3L28.7 9.9V7.6L27.2 7.2Z"
+    stroke-width="1.5"
+    stroke-miterlimit="10"
+    stroke-linecap="round"
+    stroke-linejoin="round" />
+</svg>
