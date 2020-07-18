@@ -1,8 +1,12 @@
 import { throwAlert } from './helpers';
 
+/**
+ * ConditionalLogic for Webflow forms
+ * By: Alex Iglesias - https://brota.me
+ */
 module.exports = class {
   /**
-   * @param {Array} logicList - Array of conditions and actions to perform
+   * @param {Array} [logicList = []] - Array of conditions and actions to perform
    * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
    * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
    */
@@ -18,6 +22,9 @@ module.exports = class {
     this.init();
   }
 
+  /**
+   * Init functionalities
+   */
   init() {
     this.logicList.forEach((logic) => {
       // Add event listeners to all conditions origin
@@ -32,7 +39,6 @@ module.exports = class {
 
   /**
    * Listen for inputs on each condition origin element
-   *
    * @param {Object} logic - Object that contains conditions, operator and actions
    */
   addEvents(logic) {
@@ -50,8 +56,45 @@ module.exports = class {
   }
 
   /**
+   * Stores input data
+   * @param {string} selector - Query selector of the element (group or single)
+   */
+  storeInputData(selector) {
+    // If it's a custom Ix2 interaction, don't store it.
+    if (selector === 'custom') return;
+
+    const element = document.querySelector(selector);
+    if (!element) throwAlert(selector, 'wrong-selector');
+
+    const targets = this.getTargets(element);
+
+    targets.forEach((target) => {
+      // Get element data
+      const parent = target.closest('[data-logic="parent"]');
+      if (!parent) throwAlert(selector, 'no-parent');
+
+      const data = {
+        element: target,
+        visible: !!(
+          target.offsetWidth ||
+          target.offsetHeight ||
+          target.getClientRects().length
+        ),
+        required: target.required,
+        disabled: target.disabled,
+        parent: parent,
+      };
+
+      // Find element index in store
+      const index = this.store.findIndex((data) => data.element === target);
+
+      // If element is not stored, push it
+      if (index === -1) this.store.push(data);
+    });
+  }
+
+  /**
    * Check if conditions are met
-   *
    * @param {Array} conditions - List of conditions that have to be met
    * @param {string} [operator = 'and'] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
    * @param {Array} actions - List of actions to trigger
@@ -117,7 +160,6 @@ module.exports = class {
 
   /**
    * Triggers an action
-   *
    * @param {string} selector - Selector of the target element
    * @param {string} action - Action to be triggered (show, hide, enable, disable, require, unrequire)
    * @param {boolean} [clear=false] - Determines if the input value has to be cleared when the action is triggered
@@ -197,14 +239,14 @@ module.exports = class {
         default:
           throwAlert(selector, 'wrong-action');
       }
-    });
 
-    // Clear the input
-    if (clear) this.clearInputs(targets);
+      // Clear the input
+      if (clear) this.clearInput(target);
+    });
   }
 
   /**
-   *
+   * Show an input
    * @param {HTMLElement} target - DOM Node of the target to be shown
    * @param {HTMLElement} parent - DOM Node of the parent
    * @param {boolean} interaction - Determines if Webflow Ix2 was found
@@ -229,7 +271,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Hide an input
    * @param {HTMLElement} target - DOM Node of the target to be hidden
    * @param {HTMLElement} parent - DOM Node of the parent
    * @param {boolean} interaction - Determines if Webflow Ix2 was found
@@ -249,7 +291,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Enable an input
    * @param {HTMLElement} target - DOM Node of the target to be enabled
    * @param {boolean} visible - Determines if the target is visible
    */
@@ -262,7 +304,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Disable an input
    * @param {HTMLElement} target - DOM Node of the target to be disabled
    * @param {boolean} visible - Determines if the target is visible
    */
@@ -275,7 +317,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Require an input
    * @param {HTMLElement} target - DOM Node of the target to be required
    * @param {boolean} visible - Determines if the target is visible
    */
@@ -288,7 +330,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Unrequire an input
    * @param {HTMLElement} target - DOM Node of the target to be unrequired
    * @param {boolean} visible - Determines if the target is visible
    */
@@ -301,7 +343,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Get targets inside a parent wrapper
    * @param {HTMLElement} element - DOM Node of the element
    */
   getTargets(element) {
@@ -316,7 +358,7 @@ module.exports = class {
   }
 
   /**
-   *
+   * Trigger custom Webflow Interaction
    * @param {HTMLElement} parent - DOM Node that contains the Ix2 Triggers
    * @param {string} action - Action to be performed
    * @param {boolean} [custom=false] - If the interaction is a custom one
@@ -334,59 +376,17 @@ module.exports = class {
   }
 
   /**
-   *
-   * @param {Array} targets - Array of elements that have to be cleared
+   * Clear the value of an input
+   * @param {HTMLElement} target - Element that has to be cleared
    */
-  clearInputs(targets) {
-    targets.forEach((target) => {
-      if (target.type === 'checkbox' || target.type === 'radio')
-        target.checked = false;
-      else target.value = '';
-    });
-  }
-
-  /**
-   * Stores input data
-   *
-   * @param {string} selector - Query selector of the element (group or single)
-   */
-  storeInputData(selector) {
-    // If it's a custom Ix2 interaction, don't store it.
-    if (selector === 'custom') return;
-
-    const element = document.querySelector(selector);
-    if (!element) throwAlert(selector, 'wrong-selector');
-
-    const targets = this.getTargets(element);
-
-    targets.forEach((target) => {
-      // Get element data
-      const parent = target.closest('[data-logic="parent"]');
-      if (!parent) throwAlert(selector, 'no-parent');
-
-      const data = {
-        element: target,
-        visible: !!(
-          target.offsetWidth ||
-          target.offsetHeight ||
-          target.getClientRects().length
-        ),
-        required: target.required,
-        disabled: target.disabled,
-        parent: parent,
-      };
-
-      // Find element index in store
-      const index = this.store.findIndex((data) => data.element === target);
-
-      // If element is not stored, push it
-      if (index === -1) this.store.push(data);
-    });
+  clearInput(target) {
+    if (target.type === 'checkbox' || target.type === 'radio')
+      target.checked = false;
+    else target.value = '';
   }
 
   /**
    * Updates element values in store
-   *
    * @param {HTMLElement} target - DOM Node of the target
    * @param {string} key - Key to update (visible, required, enabled)
    * @param {boolean} value - Boolean value to assign
@@ -400,19 +400,12 @@ module.exports = class {
   }
 
   /**
-   *
    * @param {HTMLElement} target - DOM Node of the target
    */
   getStoredData(target) {
     // Check store values
     const storedData = this.store.find((data) => data.element === target);
 
-    if (!storedData) return;
-
-    return storedData;
-  }
-
-  logStore() {
-    console.log(this.store);
+    return storedData || {};
   }
 };
