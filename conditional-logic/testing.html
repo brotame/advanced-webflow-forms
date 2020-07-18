@@ -7,6 +7,42 @@
       logicList: [
         {
           conditions: [
+            {
+              selector: '#options',
+              operator: 'not-equal',
+              value: 'Contact Info',
+            },
+            {
+              selector: '#options',
+              operator: 'equal',
+              value: 'Demo',
+            },
+          ],
+          operator: 'and',
+          actions: [
+            {
+              selector: '.contact-info',
+              action: 'show',
+              clear: false,
+            },
+          ],
+        },
+      ],
+      submitHiddenInputs: false,
+      checkConditionsOnLoad: true,
+    });
+
+    conditionalLogic.init();
+  });
+</script>
+
+<script>
+  var Webflow = Webflow || [];
+  Webflow.push(function () {
+    var conditionalLogic = new ConditionalLogic({
+      logicList: [
+        {
+          conditions: [
             { selector: '#options', operator: 'equal', value: 'Contact Info' },
           ],
           actions: [
