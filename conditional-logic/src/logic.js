@@ -56,7 +56,7 @@ module.exports = class {
   }
 
   /**
-   * Stores input data
+   * Stores input data to keep track of each elements status (visible, required, enabled)
    * @param {string} selector - Query selector of the element (group or single)
    */
   storeInputData(selector) {
