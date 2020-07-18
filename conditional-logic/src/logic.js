@@ -7,7 +7,7 @@ module.exports = class {
    * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
    */
   constructor({
-    logicList,
+    logicList = [],
     submitHiddenInputs = false,
     checkConditionsOnLoad = true,
   }) {
@@ -16,6 +16,18 @@ module.exports = class {
     this.checkConditionsOnLoad = checkConditionsOnLoad;
     this.store = [];
     this.init();
+  }
+
+  init() {
+    this.logicList.forEach((logic) => {
+      // Add event listeners to all conditions origin
+      this.addEvents(logic);
+
+      // Store data of all targets of the actions
+      logic.actions.forEach((action) => {
+        this.storeInputData(action.selector);
+      });
+    });
   }
 
   /**
@@ -398,18 +410,6 @@ module.exports = class {
     if (!storedData) return;
 
     return storedData;
-  }
-
-  init() {
-    this.logicList.forEach((logic) => {
-      // Add event listeners to all conditions origin
-      this.addEvents(logic);
-
-      // Store data of all targets of the actions
-      logic.actions.forEach((action) => {
-        this.storeInputData(action.selector);
-      });
-    });
   }
 
   logStore() {
