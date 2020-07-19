@@ -25,7 +25,7 @@ export default class View {
     warningClass,
     alertText,
     scrollTopOnStepChange = false,
-    hiddeButtonsOnSubmit = false,
+    hiddeButtonsOnSubmit = true,
     sendHiddenForm = false,
     hiddenFormStep = 1,
   }) {
@@ -33,22 +33,22 @@ export default class View {
     this.next = document.getElementById(nextID);
     this.back = backID ? document.getElementById(backID) : undefined;
     this.alert = alertID ? document.getElementById(alertID) : undefined;
+    this.submitButton = this.form.querySelector('input[type="submit"]');
+    this.mask = this.form.querySelector('.w-slider-mask');
+    this.steps = this.form.querySelectorAll('.w-slide');
+    this.inputs = this.getInputs();
+    this.rightArrow = this.form.querySelector('.w-slider-arrow-right');
+    this.leftArrow = this.form.querySelector('.w-slider-arrow-left');
+    this.sliderDots = this.form.querySelectorAll('.w-slider-dot');
+    this.navLinks = document.querySelectorAll('[data-msf-nav]');
     this.nextText = nextButtonText || this.next.textContent;
-    this.submitText = submitButtonText || this.submitButton.textContent;
+    this.submitText = submitButtonText || this.submitButton.value;
     this.warningClass = warningClass;
     this.alertText = alertText;
     this.scrollTopOnStepChange = scrollTopOnStepChange;
     this.hiddeButtonsOnSubmit = hiddeButtonsOnSubmit;
     this.sendHiddenForm = sendHiddenForm;
     this.hiddenFormStep = hiddenFormStep >= 1 ? hiddenFormStep : 1;
-    this.inputs = this.getInputs();
-    this.submitButton = this.form.querySelector('input[type="submit"]');
-    this.mask = this.form.querySelector('.w-slider-mask');
-    this.steps = this.form.querySelectorAll('.w-slide');
-    this.rightArrow = this.form.querySelector('.w-slider-arrow-right');
-    this.leftArrow = this.form.querySelector('.w-slider-arrow-left');
-    this.sliderDots = this.form.querySelectorAll('.w-slider-dot');
-    this.navLinks = document.querySelectorAll('[data-msf-nav]');
   }
 
   /**
@@ -67,7 +67,8 @@ export default class View {
   getInputs(index) {
     let inputs = [];
 
-    if (!index) inputs = this.form.querySelectorAll('input, select, textarea');
+    if (index == null)
+      inputs = this.form.querySelectorAll('input, select, textarea');
     else inputs = this.steps[index].querySelectorAll('input, select, textarea');
 
     return Array.from(inputs);
@@ -281,5 +282,9 @@ export default class View {
         }
       }
     });
+
+    // Reset Webflow Validation
+    Webflow.destroy();
+    Webflow.ready();
   }
 }
