@@ -1,4 +1,4 @@
-import { throwAlert } from './helpers';
+import { throwAlert, isVisible } from './helpers';
 
 /**
  * ConditionalLogic for Webflow forms
@@ -75,11 +75,7 @@ module.exports = class {
 
       const data = {
         element: target,
-        visible: !!(
-          target.offsetWidth ||
-          target.offsetHeight ||
-          target.getClientRects().length
-        ),
+        visible: isVisible(target),
         required: target.required,
         disabled: target.disabled,
         parent: parent,
@@ -348,9 +344,7 @@ module.exports = class {
    */
   getTargets(element) {
     // If element is not a form element, then is a group of elements
-    const isGroup = ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)
-      ? false
-      : true;
+    const isGroup = ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName);
 
     return isGroup
       ? Array.from(element.querySelectorAll('input', 'select', 'textarea'))

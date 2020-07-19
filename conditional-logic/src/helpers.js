@@ -3,7 +3,7 @@
  * @param {string} selector - Selector that was not found
  * @param {string} error - Error type
  */
-export function throwAlert(selector, error) {
+export const throwAlert = (selector, error) => {
   switch (error) {
     case 'wrong-selector':
       alert(
@@ -25,4 +25,15 @@ export function throwAlert(selector, error) {
       alert(`The operator of the selector ${selector} is not valid.`);
       break;
   }
-}
+};
+
+/**
+ * Checks if an element is visible
+ * @param {HTMLElement} element
+ */
+export const isVisible = (element) =>
+  !!(
+    element.offsetWidth ||
+    element.offsetHeight ||
+    element.getClientRects().length
+  );

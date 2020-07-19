@@ -4,7 +4,6 @@
   "description": "Multi Steps for Webflow Advanced Forms",
   "main": "msf.js",
   "scripts": {
-    "dev": "parcel src/msf.js",
     "build": "parcel build src/msf.js --no-source-maps --no-cache --global MSF"
   },
   "author": "Alex Iglesias",
