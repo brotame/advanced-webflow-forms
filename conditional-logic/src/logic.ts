@@ -6,6 +6,7 @@ import {
   LogicConstructor,
   StoreData,
   FormElement,
+  InteractionParams,
 } from './types';
 
 /**
@@ -235,7 +236,10 @@ module.exports = class {
       let interactionExists = false;
 
       if (notTriggered) {
-        interactionExists = this.triggerInteraction({ parent, action });
+        interactionExists = this.triggerInteraction({
+          parent,
+          action,
+        });
         triggeredParents.push(parent);
       }
 
@@ -410,41 +414,12 @@ module.exports = class {
    * @param {string} action - Action to be performed
    * @param {boolean} [custom=false] - If the interaction is a custom one
    */
-  triggerInteraction({
-    parent,
-    action,
-    custom,
-  }: {
-    parent: HTMLElement;
-    action: string;
-    custom?: false;
-  }): boolean;
-  triggerInteraction({
-    parent,
-    action,
-    custom,
-  }: {
-    parent?: HTMLElement;
-    action: string;
-    custom: true;
-  }): boolean;
-  triggerInteraction({
-    parent,
-    action,
-    custom = false,
-  }: {
-    parent?: HTMLElement;
-    action: string;
-    custom?: boolean;
-  }): boolean {
+  triggerInteraction(params: InteractionParams) {
     // Search for Webflow Ix2 trigger and click it if found
-    const trigger = custom
-      ? document.querySelector<HTMLElement>(`[data-logic="${action}"]`)
-      : parent
-      ? parent.querySelector<HTMLElement>(`[data-logic="${action}"]`)
-      : null;
+    const container = params.custom ? document : params.parent;
+    const trigger = container.querySelector(`[data-logic="${params.action}"]`);
 
-    if (trigger) {
+    if (trigger instanceof HTMLElement) {
       trigger.click();
       return true;
     } else return false;

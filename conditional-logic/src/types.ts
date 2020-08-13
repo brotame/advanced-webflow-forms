@@ -44,3 +44,7 @@ export type FormElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement;
+
+export type InteractionParams =
+  | { custom: true; action: string }
+  | { custom?: false; parent: HTMLElement; action: string };
