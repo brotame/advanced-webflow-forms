@@ -1,7 +1,17 @@
 interface Condition {
   selector: string;
-  operator: string;
-  value: string | boolean;
+  operator:
+    | 'equal'
+    | 'not-equal'
+    | 'contain'
+    | 'not-contain'
+    | 'greater'
+    | 'greater-equal'
+    | 'less'
+    | 'less-equal'
+    | 'empty'
+    | 'filled';
+  value: string | boolean | number;
 }
 
 export interface Action {
@@ -12,7 +22,7 @@ export interface Action {
 
 export interface Logic {
   conditions: Condition[];
-  operator: string;
+  operator: 'and' | 'or';
   actions: Action[];
 }
 

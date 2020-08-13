@@ -1,10 +1,5 @@
-//import { debounce, gt, gte, lt, lte } from 'lodash-es';
 import debounce from 'lodash-es/debounce';
-import gt from 'lodash-es/gt';
-import gte from 'lodash-es/gte';
-import lt from 'lodash-es/lt';
-import lte from 'lodash-es/lte';
-import { throwError, isVisible } from './helpers';
+import { throwError, isVisible, convertToString } from './helpers';
 import {
   Logic,
   Action,
@@ -23,18 +18,12 @@ module.exports = class {
    * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
    * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
    */
-  logicList: Logic[];
-  submitHiddenInputs: boolean;
-  checkConditionsOnLoad: boolean;
+  logicList: Logic[] = [];
+  submitHiddenInputs: boolean = false;
+  checkConditionsOnLoad: boolean = true;
   store: StoreData[];
-  constructor({
-    logicList,
-    submitHiddenInputs = false,
-    checkConditionsOnLoad = true,
-  }: LogicConstructor) {
-    this.logicList = logicList;
-    this.submitHiddenInputs = submitHiddenInputs;
-    this.checkConditionsOnLoad = checkConditionsOnLoad;
+  constructor(params: LogicConstructor) {
+    Object.assign(this, params);
     this.store = [];
     this.init();
   }
@@ -71,10 +60,21 @@ module.exports = class {
 
       // Debounce Check Conditions Function
       const debouncedCheck = debounce(this.checkConditions.bind(this), 200);
+      const debounceTypes = [
+        'email',
+        'number',
+        'password',
+        'search',
+        'tel',
+        'text',
+        'textarea',
+        'url',
+      ];
 
       // Add event listener
       element.addEventListener('input', () => {
-        debouncedCheck(logic);
+        if (debounceTypes.includes(element.type)) debouncedCheck(logic);
+        else this.checkConditions(logic);
       });
     });
   }
@@ -136,11 +136,13 @@ module.exports = class {
       }
 
       // Get value of the origin
-      const elementValue =
+      const elementValue = convertToString(
         element.type === 'checkbox'
           ? (<HTMLInputElement>element).checked
-          : element.value;
-      const targetValue = condition.value;
+          : element.value
+      );
+
+      const targetValue = convertToString(condition.value);
 
       // Check condition
       switch (condition.operator) {
@@ -151,37 +153,28 @@ module.exports = class {
           pass = elementValue !== targetValue ? true : false;
           break;
         case 'contain':
-          if (
-            typeof elementValue === 'string' &&
-            typeof targetValue === 'string'
-          )
-            pass = elementValue.includes(targetValue) ? true : false;
+          pass = elementValue.includes(targetValue) ? true : false;
           break;
         case 'not-contain':
-          if (
-            typeof elementValue === 'string' &&
-            typeof targetValue === 'string'
-          )
-            pass = !elementValue.includes(targetValue) ? true : false;
+          pass = !elementValue.includes(targetValue) ? true : false;
           break;
         case 'greater':
-          pass = gt(elementValue, targetValue);
+          pass = +elementValue > +targetValue;
           break;
         case 'greater-equal':
-          pass = gte(elementValue, targetValue);
+          pass = +elementValue >= +targetValue;
           break;
         case 'less':
-          pass = lt(elementValue, targetValue);
+          pass = +elementValue < +targetValue;
           break;
         case 'less-equal':
-          pass = lte(elementValue, targetValue);
+          pass = +elementValue <= +targetValue;
           break;
         case 'empty':
-          if (typeof elementValue === 'string')
-            pass = elementValue.length === 0;
+          pass = elementValue.length === 0;
           break;
         case 'filled':
-          if (typeof elementValue === 'string') pass = elementValue.length > 0;
+          pass = elementValue.length > 0;
           break;
         default:
           throwError(condition.selector, 'wrong-operator');

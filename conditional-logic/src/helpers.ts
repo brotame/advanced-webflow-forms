@@ -38,3 +38,13 @@ export const isVisible = (element: HTMLElement) =>
     element.offsetHeight ||
     element.getClientRects().length
   );
+
+/**
+ * Returns a string 'true' or 'false'
+ * @param {value} boolean
+ */
+export const convertToString = (value: string | number | boolean) => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return value.toString();
+  else return value ? 'true' : 'false';
+};
