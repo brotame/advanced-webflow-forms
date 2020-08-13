@@ -219,7 +219,7 @@ module.exports = class {
 
     targets.forEach((target) => {
       // Get stored data
-      const storedData = this.getStoredData(target)!;
+      const storedData = this.getStoredData(target);
       const { visible, required, disabled, parent } = storedData;
 
       // If element already meets the condition, abort
@@ -483,8 +483,6 @@ module.exports = class {
    */
   getStoredData(target: FormElement) {
     // Check store values
-    const storedData = this.store.find((data) => data.element === target);
-
-    return storedData;
+    return this.store.find((data) => data.element === target)!;
   }
 };
