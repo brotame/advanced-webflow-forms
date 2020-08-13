@@ -4,11 +4,18 @@
   "description": "Conditional logic for Webflow Advanced Forms",
   "main": "logic.js",
   "scripts": {
-    "build": "parcel build src/logic.js --no-source-maps --no-cache --global ConditionalLogic"
+    "check": "tsc --noEmit src/logic.ts",
+    "build": "parcel build src/logic.ts --experimental-scope-hoisting --no-source-maps --no-cache --global ConditionalLogic"
   },
   "author": "Alex Iglesias",
   "license": "ISC",
   "devDependencies": {
-    "parcel-bundler": "^1.12.4"
+    "@types/lodash-es": "^4.17.3",
+    "@types/node": "^14.0.27",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.15"
   }
 }

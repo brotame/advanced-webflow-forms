@@ -1,4 +1,17 @@
-import { throwAlert, isVisible } from './helpers';
+//import { debounce, gt, gte, lt, lte } from 'lodash-es';
+import debounce from 'lodash-es/debounce';
+import gt from 'lodash-es/gt';
+import gte from 'lodash-es/gte';
+import lt from 'lodash-es/lt';
+import lte from 'lodash-es/lte';
+import { throwError, isVisible } from './helpers';
+import {
+  Logic,
+  Action,
+  LogicConstructor,
+  StoreData,
+  FormElement,
+} from './types';
 
 /**
  * ConditionalLogic for Webflow forms
@@ -10,11 +23,15 @@ module.exports = class {
    * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
    * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
    */
+  logicList: Logic[];
+  submitHiddenInputs: boolean;
+  checkConditionsOnLoad: boolean;
+  store: StoreData[];
   constructor({
-    logicList = [],
+    logicList,
     submitHiddenInputs = false,
     checkConditionsOnLoad = true,
-  }) {
+  }: LogicConstructor) {
     this.logicList = logicList;
     this.submitHiddenInputs = submitHiddenInputs;
     this.checkConditionsOnLoad = checkConditionsOnLoad;
@@ -41,16 +58,23 @@ module.exports = class {
    * Listen for inputs on each condition origin element
    * @param {Object} logic - Object that contains conditions, operator and actions
    */
-  addEvents(logic) {
+  addEvents(logic: Logic) {
     logic.conditions.forEach((condition) => {
-      const element = document.querySelector(condition.selector);
-      if (!element) throwAlert(condition.selector, 'wrong-selector');
+      const element = document.querySelector<FormElement>(condition.selector);
+      if (!element) {
+        throwError(condition.selector, 'wrong-selector');
+        return;
+      }
 
+      // Check conditions on load
       if (this.checkConditionsOnLoad) this.checkConditions(logic);
+
+      // Debounce Check Conditions Function
+      const debouncedCheck = debounce(this.checkConditions.bind(this), 200);
 
       // Add event listener
       element.addEventListener('input', () => {
-        this.checkConditions(logic);
+        debouncedCheck(logic);
       });
     });
   }
@@ -59,21 +83,27 @@ module.exports = class {
    * Stores input data to keep track of each elements status (visible, required, enabled)
    * @param {string} selector - Query selector of the element (group or single)
    */
-  storeInputData(selector) {
+  storeInputData(selector: string) {
     // If it's a custom Ix2 interaction, don't store it.
     if (selector === 'custom') return;
 
-    const element = document.querySelector(selector);
-    if (!element) throwAlert(selector, 'wrong-selector');
+    const element = document.querySelector<HTMLElement>(selector);
+    if (!element) {
+      throwError(selector, 'wrong-selector');
+      return;
+    }
 
     const targets = this.getTargets(element);
 
     targets.forEach((target) => {
       // Get element data
-      const parent = target.closest('[data-logic="parent"]');
-      if (!parent) throwAlert(selector, 'no-parent');
+      const parent = target.closest<HTMLElement>('[data-logic="parent"]');
+      if (!parent) {
+        throwError(selector, 'no-parent');
+        return;
+      }
 
-      const data = {
+      const data: StoreData = {
         element: target,
         visible: isVisible(target),
         required: target.required,
@@ -95,15 +125,21 @@ module.exports = class {
    * @param {string} [operator = 'and'] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
    * @param {Array} actions - List of actions to trigger
    */
-  checkConditions({ conditions, operator = 'and', actions }) {
+  checkConditions({ conditions, operator = 'and', actions }: Logic) {
     let pass = false;
 
     for (let condition of conditions) {
-      const element = document.querySelector(condition.selector);
+      const element = document.querySelector<FormElement>(condition.selector);
+      if (!element) {
+        throwError(condition.selector, 'wrong-selector');
+        return;
+      }
 
       // Get value of the origin
       const elementValue =
-        element.type === 'checkbox' ? element.checked : element.value;
+        element.type === 'checkbox'
+          ? (<HTMLInputElement>element).checked
+          : element.value;
       const targetValue = condition.value;
 
       // Check condition
@@ -115,31 +151,40 @@ module.exports = class {
           pass = elementValue !== targetValue ? true : false;
           break;
         case 'contain':
-          pass = elementValue.includes(targetValue) ? true : false;
+          if (
+            typeof elementValue === 'string' &&
+            typeof targetValue === 'string'
+          )
+            pass = elementValue.includes(targetValue) ? true : false;
           break;
         case 'not-contain':
-          pass = !elementValue.includes(targetValue) ? true : false;
+          if (
+            typeof elementValue === 'string' &&
+            typeof targetValue === 'string'
+          )
+            pass = !elementValue.includes(targetValue) ? true : false;
           break;
         case 'greater':
-          pass = parseInt(elementValue) > parseInt(targetValue);
+          pass = gt(elementValue, targetValue);
           break;
         case 'greater-equal':
-          pass = parseInt(elementValue) >= parseInt(targetValue);
+          pass = gte(elementValue, targetValue);
           break;
         case 'less':
-          pass = parseInt(elementValue) < parseInt(targetValue);
+          pass = lt(elementValue, targetValue);
           break;
         case 'less-equal':
-          pass = parseInt(elementValue) <= parseInt(targetValue);
+          pass = lte(elementValue, targetValue);
           break;
         case 'empty':
-          pass = elementValue.length === 0;
+          if (typeof elementValue === 'string')
+            pass = elementValue.length === 0;
           break;
         case 'filled':
-          pass = elementValue.length > 0;
+          if (typeof elementValue === 'string') pass = elementValue.length > 0;
           break;
         default:
-          throwAlert(condition.selector, 'wrong-operator');
+          throwError(condition.selector, 'wrong-operator');
       }
 
       // Operator determines if the loop must continue checking conditions
@@ -156,31 +201,33 @@ module.exports = class {
 
   /**
    * Triggers an action
-   * @param {string} selector - Selector of the target element
+   * @param {Action} object - Selector of the target element
    * @param {string} action - Action to be triggered (show, hide, enable, disable, require, unrequire)
    * @param {boolean} [clear=false] - Determines if the input value has to be cleared when the action is triggered
    */
-  triggerAction({ selector, action, clear = false }) {
+  triggerAction({ selector, action, clear = false }: Action) {
     // If it's a custom Ix2 interaction, trigger it and return.
     if (selector === 'custom') {
       this.triggerInteraction({ action, custom: true });
       return;
     }
 
-    const element = document.querySelector(selector);
-    if (!element) throwAlert(selector, 'wrong-selector');
+    const element = document.querySelector<HTMLElement>(selector);
+    if (!element) {
+      throwError(selector, 'wrong-selector');
+      return;
+    }
 
     // Get element targets
     const targets = this.getTargets(element);
 
     // Triggered parents will be stored in the array to avoid multiple triggers on the same element
-    const triggeredParents = [];
+    const triggeredParents: HTMLElement[] = [];
 
     targets.forEach((target) => {
       // Get stored data
-      const { visible, required, disabled, parent } = this.getStoredData(
-        target
-      );
+      const storedData = this.getStoredData(target)!;
+      const { visible, required, disabled, parent } = storedData;
 
       // If element already meets the condition, abort
       if (action === 'show' && visible) return;
@@ -233,7 +280,7 @@ module.exports = class {
           break;
 
         default:
-          throwAlert(selector, 'wrong-action');
+          throwError(selector, 'wrong-action');
       }
 
       // Clear the input
@@ -243,17 +290,20 @@ module.exports = class {
 
   /**
    * Show an input
-   * @param {HTMLElement} target - DOM Node of the target to be shown
+   * @param {FormElement} target - Target to be shown
    * @param {HTMLElement} parent - DOM Node of the parent
-   * @param {boolean} interaction - Determines if Webflow Ix2 was found
+   * @param {boolean} interactionExists - Determines if Webflow Ix2 was found
+   * @param {boolean} notTriggered - Determines if Webflow Ix2 was already triggered
+   * @param {boolean} required - Determines if the input is required
+   * @param {boolean} disabled - Determines if the input is disabled
    */
   showInput(
-    target,
-    parent,
-    interactionExists,
-    notTriggered,
-    required,
-    disabled
+    target: FormElement,
+    parent: HTMLElement,
+    interactionExists: boolean,
+    notTriggered: boolean,
+    required: boolean,
+    disabled: boolean
   ) {
     // If parent has no Webflow Ix2 trigger, set to display block
     if (!interactionExists && notTriggered) parent.style.display = 'block';
@@ -268,11 +318,17 @@ module.exports = class {
 
   /**
    * Hide an input
-   * @param {HTMLElement} target - DOM Node of the target to be hidden
+   * @param {FormElement} target - Target to be hidden
    * @param {HTMLElement} parent - DOM Node of the parent
-   * @param {boolean} interaction - Determines if Webflow Ix2 was found
+   * @param {boolean} interactionExists - Determines if Webflow Ix2 was found
+   * @param {boolean} notTriggered - Determines if Webflow Ix2 was already triggered
    */
-  hideInput(target, parent, interactionExists, notTriggered) {
+  hideInput(
+    target: FormElement,
+    parent: HTMLElement,
+    interactionExists: boolean,
+    notTriggered: boolean
+  ) {
     // If parent has no Webflow Ix2 trigger, set to display none
     if (!interactionExists && notTriggered) parent.style.display = 'none';
 
@@ -288,10 +344,10 @@ module.exports = class {
 
   /**
    * Enable an input
-   * @param {HTMLElement} target - DOM Node of the target to be enabled
+   * @param {FormElement} target - Target to be enabled
    * @param {boolean} visible - Determines if the target is visible
    */
-  enableInput(target, visible) {
+  enableInput(target: FormElement, visible: boolean) {
     // If target is visible, enable
     if (visible) target.disabled = false;
 
@@ -301,10 +357,10 @@ module.exports = class {
 
   /**
    * Disable an input
-   * @param {HTMLElement} target - DOM Node of the target to be disabled
+   * @param {FormElement} target - Target to be disabled
    * @param {boolean} visible - Determines if the target is visible
    */
-  disableInput(target, visible) {
+  disableInput(target: FormElement, visible: boolean) {
     // If target is visible, disable
     if (visible) target.disabled = true;
 
@@ -314,10 +370,10 @@ module.exports = class {
 
   /**
    * Require an input
-   * @param {HTMLElement} target - DOM Node of the target to be required
+   * @param {FormElement} target - Target to be required
    * @param {boolean} visible - Determines if the target is visible
    */
-  requireInput(target, visible) {
+  requireInput(target: FormElement, visible: boolean) {
     // If target is visible, require
     if (visible) target.required = true;
 
@@ -327,10 +383,10 @@ module.exports = class {
 
   /**
    * Unrequire an input
-   * @param {HTMLElement} target - DOM Node of the target to be unrequired
+   * @param {FormElement} target - Target to be unrequired
    * @param {boolean} visible - Determines if the target is visible
    */
-  unrequireInput(target, visible) {
+  unrequireInput(target: FormElement, visible: boolean) {
     // If target is visible, unrequire
     if (visible) target.required = false;
 
@@ -342,13 +398,17 @@ module.exports = class {
    * Get targets inside a parent wrapper
    * @param {HTMLElement} element - DOM Node of the element
    */
-  getTargets(element) {
+  getTargets(element: HTMLElement) {
     // If element is not a form element, then is a group of elements
-    const isGroup = ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName);
+    const isGroup = !['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName);
 
     return isGroup
-      ? Array.from(element.querySelectorAll('input', 'select', 'textarea'))
-      : [element];
+      ? Array.from(
+          element.querySelectorAll('input, select, textarea') as NodeListOf<
+            FormElement
+          >
+        )
+      : [element as FormElement];
   }
 
   /**
@@ -357,11 +417,39 @@ module.exports = class {
    * @param {string} action - Action to be performed
    * @param {boolean} [custom=false] - If the interaction is a custom one
    */
-  triggerInteraction({ parent, action, custom = false }) {
+  triggerInteraction({
+    parent,
+    action,
+    custom,
+  }: {
+    parent: HTMLElement;
+    action: string;
+    custom?: false;
+  }): boolean;
+  triggerInteraction({
+    parent,
+    action,
+    custom,
+  }: {
+    parent?: HTMLElement;
+    action: string;
+    custom: true;
+  }): boolean;
+  triggerInteraction({
+    parent,
+    action,
+    custom = false,
+  }: {
+    parent?: HTMLElement;
+    action: string;
+    custom?: boolean;
+  }): boolean {
     // Search for Webflow Ix2 trigger and click it if found
     const trigger = custom
-      ? document.querySelector(`[data-logic="${action}"]`)
-      : parent.querySelector(`[data-logic="${action}"]`);
+      ? document.querySelector<HTMLElement>(`[data-logic="${action}"]`)
+      : parent
+      ? parent.querySelector<HTMLElement>(`[data-logic="${action}"]`)
+      : null;
 
     if (trigger) {
       trigger.click();
@@ -373,9 +461,9 @@ module.exports = class {
    * Clear the value of an input
    * @param {HTMLElement} target - Element that has to be cleared
    */
-  clearInput(target) {
+  clearInput(target: FormElement) {
     if (target.type === 'checkbox' || target.type === 'radio')
-      target.checked = false;
+      (<HTMLInputElement>target).checked = false;
     else target.value = '';
   }
 
@@ -385,7 +473,11 @@ module.exports = class {
    * @param {string} key - Key to update (visible, required, enabled)
    * @param {boolean} value - Boolean value to assign
    */
-  updateStoredData(target, key, value) {
+  updateStoredData(
+    target: FormElement,
+    key: 'visible' | 'required' | 'disabled',
+    value: boolean
+  ) {
     // Find index of element
     const index = this.store.findIndex((data) => data.element === target);
 
@@ -394,12 +486,12 @@ module.exports = class {
   }
 
   /**
-   * @param {HTMLElement} target - DOM Node of the target
+   * @param {FormElement} target - DOM Node of the target
    */
-  getStoredData(target) {
+  getStoredData(target: FormElement) {
     // Check store values
     const storedData = this.store.find((data) => data.element === target);
 
-    return storedData || {};
+    return storedData;
   }
 };

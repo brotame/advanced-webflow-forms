@@ -162,8 +162,18 @@ export default class View {
   /**
    * Hide an element
    * @param {HTMLElement} element
+   * @param {boolean} [hiddenClass = false] - Determines if the class .msf-hidden must be added
    */
-  hideElement(element) {
+  hideElement(element, hiddenClass = false) {
+    const afterTransition = (e) => {
+      console.log(e);
+      const target = e.currentTarget;
+      target.classList.add('msf-hidden');
+      target.removeEventListener('transitionend', afterTransition);
+    };
+
+    if (hiddenClass) element.addEventListener('transitionend', afterTransition);
+
     element.style.opacity = '0';
     element.style.pointerEvents = 'none';
   }
@@ -171,10 +181,15 @@ export default class View {
   /**
    * Show an element
    * @param {HTMLElement} element
+   * @param {boolean} [hiddenClass = false] - Determines if the class .msf-hidden must be removed
    */
-  showElement(element) {
-    element.style.opacity = null;
-    element.style.pointerEvents = null;
+  showElement(element, hiddenClass = false) {
+    if (hiddenClass) element.classList.remove('msf-hidden');
+
+    requestAnimationFrame(() => {
+      element.style.opacity = null;
+      element.style.pointerEvents = null;
+    });
   }
 
   /**
@@ -192,14 +207,14 @@ export default class View {
    */
   showAlert() {
     if (!!this.alertText) alert(this.alertText);
-    if (!!this.alert) this.showElement(this.alert);
+    if (!!this.alert) this.showElement(this.alert, true);
   }
 
   /**
    * Hide the alerts
    */
   hideAlert() {
-    if (!!this.alert) this.hideElement(this.alert);
+    if (!!this.alert) this.hideElement(this.alert, true);
   }
 
   /**

@@ -3,27 +3,28 @@
  * @param {string} selector - Selector that was not found
  * @param {string} error - Error type
  */
-export const throwAlert = (selector, error) => {
+export const throwError = (
+  selector: string,
+  error: 'wrong-selector' | 'no-parent' | 'wrong-action' | 'wrong-operator'
+): never => {
   switch (error) {
     case 'wrong-selector':
-      alert(
+      throw new Error(
         `The element with a selector ${selector} has not been found. Please, check if you've set it correctly.`
       );
-      break;
 
     case 'no-parent':
-      alert(
+      throw new Error(
         `The element with a selector ${selector} hasn't got any parent with the [data-logic="parent"] attibute.`
       );
-      break;
+
     case 'wrong-action':
-      alert(
+      throw new Error(
         `No action (or wrong action name) has been provided for the ${selector} selector.`
       );
-      break;
+
     case 'wrong-operator':
-      alert(`The operator of the selector ${selector} is not valid.`);
-      break;
+      throw new Error(`The operator of the selector ${selector} is not valid.`);
   }
 };
 
@@ -31,7 +32,7 @@ export const throwAlert = (selector, error) => {
  * Checks if an element is visible
  * @param {HTMLElement} element
  */
-export const isVisible = (element) =>
+export const isVisible = (element: HTMLElement) =>
   !!(
     element.offsetWidth ||
     element.offsetHeight ||
