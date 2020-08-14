@@ -39,7 +39,7 @@ export default class View {
     submitButtonText,
     warningClass,
     alertText,
-    scrollTopOnStepChange = false,
+    scrollTopOnStepChange,
     hiddeButtonsOnSubmit = true,
     sendHiddenForm = false,
     hiddenFormStep = 1,

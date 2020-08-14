@@ -1,7 +1,23 @@
+import { FormElement } from './types';
+
 /**
- *
- * @param {string} selector - Selector that was not found
- * @param {string} error - Error type
+ * Checks if an element is a form element
+ * @param element
+ */
+export const isFormElement = (
+  element: Element | null
+): element is FormElement => {
+  return (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLSelectElement ||
+    element instanceof HTMLTextAreaElement
+  );
+};
+
+/**
+ * Throw an error with a message
+ * @param selector - Selector that was not found
+ * @param error - Error type
  */
 export const throwError = (
   selector: string,
@@ -30,7 +46,7 @@ export const throwError = (
 
 /**
  * Checks if an element is visible
- * @param {HTMLElement} element
+ * @param element
  */
 export const isVisible = (element: HTMLElement) =>
   !!(
@@ -40,8 +56,8 @@ export const isVisible = (element: HTMLElement) =>
   );
 
 /**
- * Returns a string 'true' or 'false'
- * @param {value} boolean
+ * Returns any boolean or number to a string
+ * @param value
  */
 export const convertToString = (value: string | number | boolean) => {
   if (typeof value === 'string') return value;

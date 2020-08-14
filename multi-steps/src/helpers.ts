@@ -1,3 +1,19 @@
+import { FormElement } from './types';
+
+/**
+ * Checks if an element is a form element
+ * @param element
+ */
+export const isFormElement = (
+  element: Element | EventTarget | null
+): element is FormElement => {
+  return (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLSelectElement ||
+    element instanceof HTMLTextAreaElement
+  );
+};
+
 /**
  * Checks if a selector is valid
  */

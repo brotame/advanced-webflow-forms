@@ -1,4 +1,5 @@
-import { isVisible, validateEmail } from './helpers';
+import { isVisible, validateEmail, isFormElement } from './helpers';
+import { FormElement } from './types';
 import View from './view';
 
 export default class Controller {
@@ -153,14 +154,7 @@ export default class Controller {
    */
   handleInput(e: Event) {
     const input = e.currentTarget;
-    if (
-      !(
-        input instanceof HTMLInputElement ||
-        input instanceof HTMLSelectElement ||
-        input instanceof HTMLTextAreaElement
-      )
-    )
-      return;
+    if (!isFormElement(input)) return;
 
     let value: string | boolean = '-';
 

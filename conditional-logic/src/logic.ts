@@ -1,5 +1,10 @@
 import debounce from 'lodash-es/debounce';
-import { throwError, isVisible, convertToString } from './helpers';
+import {
+  throwError,
+  isVisible,
+  convertToString,
+  isFormElement,
+} from './helpers';
 import {
   Logic,
   Action,
@@ -14,15 +19,11 @@ import {
  * By: Alex Iglesias - https://brota.me
  */
 module.exports = class {
-  /**
-   * @param {Array} [logicList = []] - Array of conditions and actions to perform
-   * @param {boolean} [submitHiddenInputs = false] - Determines if hidden inputs must be submitted
-   * @param {boolean} [checkConditionsOnLoad = true] - Determines if the conditions of the logicList must be checked when the page loads
-   */
   logicList: Logic[] = [];
   submitHiddenInputs: boolean = false;
   checkConditionsOnLoad: boolean = true;
   store: StoreData[];
+
   constructor(params: LogicConstructor) {
     Object.assign(this, params);
     this.store = [];
@@ -46,12 +47,12 @@ module.exports = class {
 
   /**
    * Listen for inputs on each condition origin element
-   * @param {Object} logic - Object that contains conditions, operator and actions
+   * @param logic - Object that contains conditions, operator and actions
    */
   addEvents(logic: Logic) {
     logic.conditions.forEach((condition) => {
-      const element = document.querySelector<FormElement>(condition.selector);
-      if (!element) {
+      const element = document.querySelector(condition.selector);
+      if (!isFormElement(element)) {
         throwError(condition.selector, 'wrong-selector');
         return;
       }
@@ -82,13 +83,13 @@ module.exports = class {
 
   /**
    * Stores input data to keep track of each elements status (visible, required, enabled)
-   * @param {string} selector - Query selector of the element (group or single)
+   * @param selector - Query selector of the element (group or single)
    */
   storeInputData(selector: string) {
     // If it's a custom Ix2 interaction, don't store it.
     if (selector === 'custom') return;
 
-    const element = document.querySelector<HTMLElement>(selector);
+    const element = document.querySelector(selector);
     if (!element) {
       throwError(selector, 'wrong-selector');
       return;
@@ -98,8 +99,8 @@ module.exports = class {
 
     targets.forEach((target) => {
       // Get element data
-      const parent = target.closest<HTMLElement>('[data-logic="parent"]');
-      if (!parent) {
+      const parent = target.closest('[data-logic="parent"]');
+      if (!(parent instanceof HTMLElement)) {
         throwError(selector, 'no-parent');
         return;
       }
@@ -122,16 +123,14 @@ module.exports = class {
 
   /**
    * Check if conditions are met
-   * @param {Array} conditions - List of conditions that have to be met
-   * @param {string} [operator = 'and'] - Operator for the conditions | and: all conditions have to be met | or: only one condition has to be met
-   * @param {Array} actions - List of actions to trigger
+   * @param params - Logic object
    */
   checkConditions({ conditions, operator = 'and', actions }: Logic) {
     let pass = false;
 
     for (let condition of conditions) {
-      const element = document.querySelector<FormElement>(condition.selector);
-      if (!element) {
+      const element = document.querySelector(condition.selector);
+      if (!isFormElement(element)) {
         throwError(condition.selector, 'wrong-selector');
         return;
       }
@@ -195,9 +194,7 @@ module.exports = class {
 
   /**
    * Triggers an action
-   * @param {Action} object - Selector of the target element
-   * @param {string} action - Action to be triggered (show, hide, enable, disable, require, unrequire)
-   * @param {boolean} [clear=false] - Determines if the input value has to be cleared when the action is triggered
+   * @param params - Action object
    */
   triggerAction({ selector, action, clear = false }: Action) {
     // If it's a custom Ix2 interaction, trigger it and return.
@@ -206,7 +203,7 @@ module.exports = class {
       return;
     }
 
-    const element = document.querySelector<HTMLElement>(selector);
+    const element = document.querySelector(selector);
     if (!element) {
       throwError(selector, 'wrong-selector');
       return;
@@ -287,12 +284,12 @@ module.exports = class {
 
   /**
    * Show an input
-   * @param {FormElement} target - Target to be shown
-   * @param {HTMLElement} parent - DOM Node of the parent
-   * @param {boolean} interactionExists - Determines if Webflow Ix2 was found
-   * @param {boolean} notTriggered - Determines if Webflow Ix2 was already triggered
-   * @param {boolean} required - Determines if the input is required
-   * @param {boolean} disabled - Determines if the input is disabled
+   * @param target - Target to be shown
+   * @param parent - DOM Node of the parent
+   * @param interactionExists - Determines if Webflow Ix2 was found
+   * @param notTriggered - Determines if Webflow Ix2 was already triggered
+   * @param required - Determines if the input is required
+   * @param disabled - Determines if the input is disabled
    */
   showInput(
     target: FormElement,
@@ -315,10 +312,10 @@ module.exports = class {
 
   /**
    * Hide an input
-   * @param {FormElement} target - Target to be hidden
-   * @param {HTMLElement} parent - DOM Node of the parent
-   * @param {boolean} interactionExists - Determines if Webflow Ix2 was found
-   * @param {boolean} notTriggered - Determines if Webflow Ix2 was already triggered
+   * @param target - Target to be hidden
+   * @param parent - DOM Node of the parent
+   * @param interactionExists - Determines if Webflow Ix2 was found
+   * @param notTriggered - Determines if Webflow Ix2 was already triggered
    */
   hideInput(
     target: FormElement,
@@ -341,8 +338,8 @@ module.exports = class {
 
   /**
    * Enable an input
-   * @param {FormElement} target - Target to be enabled
-   * @param {boolean} visible - Determines if the target is visible
+   * @param target - Target to be enabled
+   * @param visible - Determines if the target is visible
    */
   enableInput(target: FormElement, visible: boolean) {
     // If target is visible, enable
@@ -354,8 +351,8 @@ module.exports = class {
 
   /**
    * Disable an input
-   * @param {FormElement} target - Target to be disabled
-   * @param {boolean} visible - Determines if the target is visible
+   * @param target - Target to be disabled
+   * @param visible - Determines if the target is visible
    */
   disableInput(target: FormElement, visible: boolean) {
     // If target is visible, disable
@@ -367,8 +364,8 @@ module.exports = class {
 
   /**
    * Require an input
-   * @param {FormElement} target - Target to be required
-   * @param {boolean} visible - Determines if the target is visible
+   * @param target - Target to be required
+   * @param visible - Determines if the target is visible
    */
   requireInput(target: FormElement, visible: boolean) {
     // If target is visible, require
@@ -380,8 +377,8 @@ module.exports = class {
 
   /**
    * Unrequire an input
-   * @param {FormElement} target - Target to be unrequired
-   * @param {boolean} visible - Determines if the target is visible
+   * @param target - Target to be unrequired
+   * @param visible - Determines if the target is visible
    */
   unrequireInput(target: FormElement, visible: boolean) {
     // If target is visible, unrequire
@@ -393,26 +390,22 @@ module.exports = class {
 
   /**
    * Get targets inside a parent wrapper
-   * @param {HTMLElement} element - DOM Node of the element
+   * @param element - DOM Node of the element
    */
-  getTargets(element: HTMLElement) {
+  getTargets(element: Element) {
     // If element is not a form element, then is a group of elements
-    const isGroup = !['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName);
-
-    return isGroup
-      ? Array.from(
+    return isFormElement(element)
+      ? [element]
+      : Array.from(
           element.querySelectorAll('input, select, textarea') as NodeListOf<
             FormElement
           >
-        )
-      : [element as FormElement];
+        );
   }
 
   /**
    * Trigger custom Webflow Interaction
-   * @param {HTMLElement} parent - DOM Node that contains the Ix2 Triggers
-   * @param {string} action - Action to be performed
-   * @param {boolean} [custom=false] - If the interaction is a custom one
+   * @param params - InteractionParams object
    */
   triggerInteraction(params: InteractionParams) {
     // Search for Webflow Ix2 trigger and click it if found
@@ -427,7 +420,7 @@ module.exports = class {
 
   /**
    * Clear the value of an input
-   * @param {HTMLElement} target - Element that has to be cleared
+   * @param target - Element that has to be cleared
    */
   clearInput(target: FormElement) {
     if (target.type === 'checkbox' || target.type === 'radio')
@@ -437,9 +430,9 @@ module.exports = class {
 
   /**
    * Updates element values in store
-   * @param {HTMLElement} target - DOM Node of the target
-   * @param {string} key - Key to update (visible, required, enabled)
-   * @param {boolean} value - Boolean value to assign
+   * @param target - DOM Node of the target
+   * @param key - Key to update (visible, required, enabled)
+   * @param value - Boolean value to assign
    */
   updateStoredData(
     target: FormElement,
@@ -454,7 +447,8 @@ module.exports = class {
   }
 
   /**
-   * @param {FormElement} target - DOM Node of the target
+   * Get the stored data of a form element
+   * @param target - DOM Node of the target
    */
   getStoredData(target: FormElement) {
     // Check store values
