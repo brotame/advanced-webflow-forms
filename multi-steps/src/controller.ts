@@ -1,7 +1,9 @@
-import { isVisible } from './helpers';
+import { isVisible, validateEmail } from './helpers';
+import View from './view';
 
 export default class Controller {
-  constructor(view) {
+  currentStep: number;
+  constructor(private view: View) {
     this.view = view;
     this.currentStep = 0;
     this.init();
@@ -29,23 +31,23 @@ export default class Controller {
     const backClick = () => {
       this.backClick();
     };
-    const navClick = (e) => {
+    const navClick = (e: MouseEvent) => {
       this.navClick(e);
     };
-    const handleInput = (e) => {
+    const handleInput = (e: Event) => {
       this.handleInput(e);
     };
-    const submitHiddenForm = (e) => {
+    const submitHiddenForm = () => {
       if (this.currentStep === this.view.hiddenFormStep) {
         this.view.submitHiddenForm();
-        e.currentTarget.removeEventListener('click', submitHiddenForm);
+        this.view.rightArrow.removeEventListener('click', submitHiddenForm);
       }
     };
 
     // Add event listeners
     this.view.next.addEventListener('click', nextClick);
 
-    this.view.back.addEventListener('click', backClick);
+    if (this.view.back) this.view.back.addEventListener('click', backClick);
 
     this.view.navLinks.forEach((link) => {
       link.addEventListener('click', navClick);
@@ -129,48 +131,78 @@ export default class Controller {
    * Handle click event on custom navigation elements
    * @param {Object} e - Event object
    */
-  navClick(e) {
-    const step = e.currentTarget.dataset.msfNav - 1;
+  navClick(e: MouseEvent) {
+    const target = e.currentTarget;
+    if (!(target instanceof HTMLElement)) return;
+
+    const dataset = target.dataset.msfNav!;
+    const step = +dataset - 1;
 
     // Go to requested step only if its lower than the current step
     if (step < this.currentStep) {
       this.view.sliderDots[step].click();
       this.currentStep = step;
-      this.view.setMaskHeight();
+      this.view.setMaskHeight(this.currentStep);
       this.view.setButtonText(this.currentStep);
     }
   }
 
   /**
-   * Handle input event: if input is filed, remove warning class and set correspondent values
+   * Handle input event: if input is filled, remove warning class and set correspondent values
    * @param {Object} e - Event object
    */
-  handleInput(e) {
+  handleInput(e: Event) {
     const input = e.currentTarget;
-    let value = null;
+    if (
+      !(
+        input instanceof HTMLInputElement ||
+        input instanceof HTMLSelectElement ||
+        input instanceof HTMLTextAreaElement
+      )
+    )
+      return;
+
+    let value: string | boolean = '-';
 
     // Perform actions depending on input type
     switch (input.type) {
       case 'checkbox':
-        const checkbox = input.parentElement.querySelector('.w-checkbox-input');
+        if (!(input instanceof HTMLInputElement)) break;
 
-        value = input.value;
-        if (input.checked && !!checkbox) this.view.removeWarningClass(checkbox);
+        // Set the checkbox value
+        value = input.checked;
+
+        // Get Webflow's custom checkbox element and remove the warning class
+        const checkboxField = input.parentElement;
+        if (!checkboxField) break;
+        const checkbox = checkboxField.querySelector('.w-checkbox-input');
+
+        if (input.checked && checkbox instanceof Element)
+          this.view.removeWarningClass(checkbox);
         break;
 
       case 'radio':
-        const radio = input.parentElement.querySelector('.w-radio-input');
+        // Get the checked radio
         const checkedOption = this.view.form.querySelector(
           `input[name="${input.name}"]:checked`
         );
 
-        value = checkedOption.value;
-        if (!!checkedOption && !!radio) this.view.removeWarningClass(radio);
+        // If exists, set its value
+        if (checkedOption instanceof HTMLInputElement)
+          value = checkedOption.value;
+        else break;
+
+        // Get Webflow's custom radio and remove warning class
+        const radioField = input.parentElement;
+        if (!radioField) break;
+
+        const radio = radioField.querySelector('.w-radio-input');
+        if (radio instanceof Element) this.view.removeWarningClass(radio);
         break;
 
       default:
         if (!input.value) break;
-        if (input.type === 'email' && !this.validateEmail(input.value)) break;
+        if (input.type === 'email' && !validateEmail(input.value)) break;
 
         value = input.value;
         this.view.removeWarningClass(input);
@@ -194,46 +226,51 @@ export default class Controller {
     requiredInputs.forEach((input) => {
       switch (input.type) {
         case 'checkbox':
-          const checkbox = input.parentElement.querySelector(
-            '.w-checkbox-input'
-          );
+          // Check if input is valid
+          if (input.checkValidity()) {
+            filledInputs++;
+            break;
+          }
 
-          if (!input.checkValidity() && !!checkbox)
+          // If not, get Webflow's custom checkbox element and set the warning class
+          const checkboxField = input.parentElement;
+          if (!checkboxField) break;
+          const checkbox = checkboxField.querySelector('.w-checkbox-input');
+
+          if (checkbox instanceof HTMLElement)
             this.view.addWarningClass(checkbox);
-          else filledInputs++;
           break;
 
         case 'radio':
-          const radio = input.parentElement.querySelector('.w-radio-input');
+          // Check if input is valid
+          if (input.checkValidity()) {
+            filledInputs++;
+            break;
+          }
 
-          if (!input.checkValidity() && !!radio)
-            this.view.addWarningClass(radio);
-          else filledInputs++;
+          // If not, get Webflow's custom radio and add warning class
+          const radioField = input.parentElement;
+          if (!radioField) break;
+          const radio = radioField.querySelector('.w-radio-input');
+
+          if (radio instanceof Element) this.view.addWarningClass(radio);
+
           break;
 
         default:
-          if (!input.checkValidity()) {
-            this.view.addWarningClass(input);
-            break;
-          } else if (
-            input.type === 'email' &&
-            !this.validateEmail(input.value)
+          // If input or email is not valid, add warning class
+          if (
+            !input.checkValidity() ||
+            (input.type === 'email' && !validateEmail(input.value))
           ) {
             this.view.addWarningClass(input);
             break;
-          } else filledInputs++;
+          }
+
+          filledInputs++;
       }
     });
 
     return filledInputs === requiredInputs.length ? true : false;
-  }
-
-  /**
-   * Checks if an email is valid
-   * @param {string} email - Email to be checked
-   */
-  validateEmail(email) {
-    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
   }
 }
