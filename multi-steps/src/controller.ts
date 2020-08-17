@@ -1,12 +1,11 @@
 import { isVisible, validateEmail, isFormElement } from './helpers';
-import { FormElement } from './types';
 import View from './view';
 
 export default class Controller {
-  currentStep: number;
+  currentStep: number = 0;
+  alertShown: boolean = false;
   constructor(private view: View) {
     this.view = view;
-    this.currentStep = 0;
     this.init();
   }
 
@@ -14,10 +13,19 @@ export default class Controller {
    * Init Functionalities
    */
   init() {
+    // Set mask height to fit the first slide
     this.view.setMaskHeight(this.currentStep);
-    this.view.hideElement(this.view.back);
-    this.view.hideAlert();
+
+    // Show the current step
+    this.view.setStepsDisplay(this.currentStep);
+
+    // Create the hidden form
     this.view.createHiddenForm();
+
+    // Hide the alert if no Webflow Ix2 is provided
+    this.setAlert();
+
+    // Set event listeners
     this.setEvents();
   }
 
@@ -70,7 +78,7 @@ export default class Controller {
 
     // If required fields are missing, show alert and return
     if (!filledFields) {
-      this.view.showAlert();
+      this.showAlert();
       return;
     }
 
@@ -83,15 +91,17 @@ export default class Controller {
     // Perform actions depending on current step
     if (this.currentStep === this.view.steps.length) {
       this.view.submitForm();
+      this.view.disableButtons();
       this.view.hideButtons();
     } else {
       this.view.goNext();
       this.view.setMaskHeight(this.currentStep);
       this.view.setButtonText(this.currentStep);
+      this.view.setStepsDisplay(this.currentStep);
     }
 
     // Hide Alert
-    this.view.hideAlert();
+    this.hideAlert();
 
     // Scroll to the top of the form
     this.view.scrollTop();
@@ -116,13 +126,10 @@ export default class Controller {
     this.view.setButtonText(previousStep);
 
     // Hide alert
-    this.view.hideAlert();
+    this.hideAlert();
 
     // Scroll to the top of the form
     this.view.scrollTop();
-
-    // If current step is 0, hide back button
-    if (previousStep === 0) this.view.hideElement(this.view.back);
 
     // Set new current step
     this.currentStep = previousStep;
@@ -171,8 +178,7 @@ export default class Controller {
         if (!checkboxField) break;
         const checkbox = checkboxField.querySelector('.w-checkbox-input');
 
-        if (input.checked && checkbox instanceof Element)
-          this.view.removeWarningClass(checkbox);
+        if (input.checked && checkbox) this.view.removeWarningClass(checkbox);
         break;
 
       case 'radio':
@@ -191,7 +197,7 @@ export default class Controller {
         if (!radioField) break;
 
         const radio = radioField.querySelector('.w-radio-input');
-        if (radio instanceof Element) this.view.removeWarningClass(radio);
+        if (radio) this.view.removeWarningClass(radio);
         break;
 
       default:
@@ -231,8 +237,7 @@ export default class Controller {
           if (!checkboxField) break;
           const checkbox = checkboxField.querySelector('.w-checkbox-input');
 
-          if (checkbox instanceof HTMLElement)
-            this.view.addWarningClass(checkbox);
+          if (checkbox) this.view.addWarningClass(checkbox);
           break;
 
         case 'radio':
@@ -247,7 +252,7 @@ export default class Controller {
           if (!radioField) break;
           const radio = radioField.querySelector('.w-radio-input');
 
-          if (radio instanceof Element) this.view.addWarningClass(radio);
+          if (radio) this.view.addWarningClass(radio);
 
           break;
 
@@ -266,5 +271,49 @@ export default class Controller {
     });
 
     return filledInputs === requiredInputs.length ? true : false;
+  }
+
+  setAlert() {
+    if (this.view.alertInteraction) return;
+
+    this.view.hideElement(this.view.alert, true);
+  }
+
+  showAlert() {
+    if (this.alertShown) return;
+
+    this.view.showAlert();
+    this.alertShown = true;
+  }
+
+  hideAlert() {
+    if (!this.alertShown) return;
+
+    this.view.hideAlert();
+    this.alertShown = false;
+  }
+
+  observeSubmitText() {
+    const submitButton = this.view.submitButton;
+
+    // Observe config
+    const config = {
+      attributes: true,
+    };
+
+    // Ofserve callback: Modify next button text if submit button changes
+    const callback = (mutationsList: MutationRecord[]) => {
+      mutationsList.forEach((mutation) => {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'value'
+        )
+          this.view.next.textContent = submitButton.value;
+      });
+    };
+
+    // Init mutation observer
+    const observer = new MutationObserver(callback);
+    observer.observe(this.view.submitButton, config);
   }
 }

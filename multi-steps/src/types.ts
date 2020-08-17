@@ -3,7 +3,9 @@ export interface MSFParams {
   nextSelector: string;
   backSelector?: string;
   alertSelector?: string;
-  nextButtonText?: string | NextText[];
+  alertInteraction?: string;
+  nextButtonText?: string | ButtonText[];
+  backButtonText?: ButtonText[];
   submitButtonText?: string;
   warningClass?: string;
   alertText?: string;
@@ -13,12 +15,14 @@ export interface MSFParams {
   hiddenFormStep?: number;
 }
 
+export interface ButtonText {
+  step: number;
+  text: string;
+}
+
 export type FormElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement;
 
-export interface NextText {
-  step: number;
-  text: string;
-}
+export type instances = 'HTMLElement' | 'HTMLInputElement' | 'HTMLFormElement';

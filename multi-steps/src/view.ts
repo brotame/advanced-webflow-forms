@@ -1,30 +1,39 @@
-import { select, getDistanceFromTop, convertToString } from './helpers';
-import { MSFParams, FormElement, NextText } from './types';
+import {
+  select,
+  getDistanceFromTop,
+  convertToString,
+  isFormElement,
+} from './helpers';
+import { MSFParams, FormElement, ButtonText } from './types';
 
 export default class View {
-  form: HTMLFormElement;
-  next: HTMLElement;
-  back?: HTMLElement;
   alert?: HTMLElement;
-  submitButton: HTMLInputElement;
-  slider: HTMLElement;
-  mask: HTMLElement;
-  steps: NodeListOf<HTMLElement>;
-  rightArrow: HTMLElement;
-  leftArrow: HTMLElement;
-  sliderDots: NodeListOf<HTMLElement>;
-  navLinks: NodeListOf<HTMLElement>;
-  nextText: string | NextText[];
-  submitText: string;
-  warningClass?: string;
+  alertInteraction?: string;
   alertText?: string;
-  scrollTopOnStepChange?: boolean;
-  hiddeButtonsOnSubmit?: boolean;
-  sendHiddenForm?: boolean;
-  hiddenFormStep?: number;
+  back?: HTMLElement;
+  backText?: ButtonText[];
+  completedPercentageDisplay: HTMLElement | null;
+  currentStepDisplay: HTMLElement | null;
+  form: HTMLFormElement;
+  hiddeButtonsOnSubmit: boolean;
   hiddenForm!: HTMLFormElement;
+  hiddenFormStep: number;
   hiddenSubmitButton!: HTMLInputElement;
   inputs: FormElement[];
+  leftArrow: HTMLElement;
+  mask: HTMLElement;
+  navLinks: NodeListOf<HTMLElement>;
+  next: HTMLElement;
+  nextText: string | ButtonText[];
+  rightArrow: HTMLElement;
+  scrollTopOnStepChange: boolean;
+  sendHiddenForm: boolean;
+  slider: HTMLElement;
+  sliderDots: NodeListOf<HTMLElement>;
+  steps: NodeListOf<HTMLElement>;
+  submitButton: HTMLInputElement;
+  submitText: string;
+  warningClass?: string;
 
   /**
    * MSF View Constructor
@@ -35,11 +44,12 @@ export default class View {
     nextSelector,
     backSelector,
     alertSelector,
+    alertInteraction,
     nextButtonText,
-    submitButtonText,
+    backButtonText,
     warningClass,
     alertText,
-    scrollTopOnStepChange,
+    scrollTopOnStepChange = false,
     hiddeButtonsOnSubmit = true,
     sendHiddenForm = false,
     hiddenFormStep = 1,
@@ -48,6 +58,7 @@ export default class View {
       required: true,
       selector: formSelector,
       errorMessage: `No form was found with the selector ${formSelector}`,
+      instance: 'HTMLFormElement',
     }) as HTMLFormElement;
     this.next = select({
       required: true,
@@ -63,11 +74,14 @@ export default class View {
       errorMessage: `No alert element was found with the selector ${alertSelector}`,
     }) as HTMLElement | undefined;
     this.submitButton = select({
+      required: true,
       selector: 'input[type="submit"]',
       errorMessage: 'No submit button was found in the form, please add one.',
       scope: this.form,
+      instance: 'HTMLInputElement',
     }) as HTMLInputElement;
     this.slider = select({
+      required: true,
       selector: '.w-slider',
       errorMessage: 'No slider found inside the form, please add one.',
       scope: this.form,
@@ -88,10 +102,18 @@ export default class View {
     this.navLinks = document.querySelectorAll('[data-msf-nav]') as NodeListOf<
       HTMLElement
     >;
+    this.currentStepDisplay = document.querySelector<HTMLElement>(
+      '[data-msf="current-step"]'
+    );
+    this.completedPercentageDisplay = document.querySelector<HTMLElement>(
+      '[data-msf="completed-percentage"]'
+    );
     this.nextText = nextButtonText || this.next.textContent || 'Next';
-    this.submitText = submitButtonText || this.submitButton.value;
+    this.backText = backButtonText;
+    this.submitText = this.submitButton.value;
     this.warningClass = warningClass;
     this.alertText = alertText;
+    this.alertInteraction = alertInteraction;
     this.scrollTopOnStepChange = scrollTopOnStepChange;
     this.hiddeButtonsOnSubmit = hiddeButtonsOnSubmit;
     this.sendHiddenForm = sendHiddenForm;
@@ -155,6 +177,20 @@ export default class View {
         }
       }
     }
+
+    // If backText exists, set the text to the correspondent step or fall back to the last one
+    if (this.back && Array.isArray(this.backText)) {
+      for (let i = 0; i++; i = currentStep) {
+        const index = this.backText.findIndex(
+          (object) => object.step - 1 === currentStep - i
+        );
+
+        if (index > 1) {
+          this.back.textContent = this.backText[index].text;
+          break;
+        }
+      }
+    }
   }
 
   /**
@@ -208,18 +244,25 @@ export default class View {
   /**
    * Hide an element
    * @param element - Element to be hidden
-   * @param hiddenClass - Determines if the class .msf-hidden must be added
    */
-  hideElement(element?: HTMLElement, hiddenClass = false) {
+  hideElement(element?: HTMLElement, display: boolean = false) {
     if (!element) return;
 
-    const afterTransition = () => {
-      element.classList.add('msf-hidden');
-      element.removeEventListener('transitionend', afterTransition);
-    };
+    // Check if the element has opacity transition
+    const styles = getComputedStyle(element);
+    if (styles.transition === 'all 0s ease 0s')
+      element.style.transition = 'opacity 0.2s ease';
 
-    if (hiddenClass) element.addEventListener('transitionend', afterTransition);
+    if (display) {
+      // Set to display:none after the opacity is set to 0
+      const afterTransition = () => {
+        element.style.display = 'none';
+        element.removeEventListener('transitionend', afterTransition);
+      };
+      element.addEventListener('transitionend', afterTransition);
+    }
 
+    // Set opacity to 0;
     element.style.opacity = '0';
     element.style.pointerEvents = 'none';
   }
@@ -227,17 +270,24 @@ export default class View {
   /**
    * Show an element
    * @param element - Element to be shown
-   * @param hiddenClass - Determines if the class .msf-hidden must be removed
    */
-  showElement(element?: HTMLElement, hiddenClass = false) {
+  showElement(element?: HTMLElement, display: boolean = false) {
     if (!element) return;
 
-    if (hiddenClass) element.classList.remove('msf-hidden');
+    // Set display:block
+    if (display) element.style.display = 'block';
 
+    // Reset opacity and pointer events
     requestAnimationFrame(() => {
       element.style.opacity = '';
       element.style.pointerEvents = '';
     });
+  }
+
+  disableButtons() {
+    this.next.style.pointerEvents = 'none';
+    if (this.back) this.back.style.pointerEvents = 'none';
+    this.navLinks.forEach((link) => (link.style.pointerEvents = 'none'));
   }
 
   /**
@@ -254,15 +304,37 @@ export default class View {
    * Show the alerts
    */
   showAlert() {
+    // If text is provided, show text alert
     if (this.alertText) alert(this.alertText);
-    if (this.alert) this.showElement(this.alert, true);
+
+    // If alert element is provided, show it
+    if (!this.alert) return;
+
+    // If Webflow Ix2 trigger is provided, click it
+    if (this.alertInteraction) this.customAlert();
+    // If not, set display:block
+    else this.showElement(this.alert, true);
   }
 
   /**
-   * Hide the alerts
+   * Hide the alert element
    */
   hideAlert() {
-    if (this.alert) this.hideElement(this.alert, true);
+    // If alert element is provided, hide it it
+    if (!this.alert) return;
+
+    // If Webflow Ix2 trigger is provided, click it
+    if (this.alertInteraction) this.customAlert();
+    // If not, set display:block
+    else this.hideElement(this.alert, true);
+  }
+
+  /**
+   * Show alert with a custom Ix2 trigger
+   */
+  customAlert() {
+    const trigger = document.querySelector(this.alertInteraction!);
+    if (trigger instanceof HTMLElement) trigger.click();
   }
 
   /**
@@ -294,14 +366,24 @@ export default class View {
     // If a display element is found, set the input value
     if (displayElement) displayElement.textContent = value;
 
-    // If the input has the msf-data-hidden attribute, set its value to the correspondent hidden form input
-    if (input.hasAttribute('msf-data-hidden')) {
+    // If the input has the data-msf-hidden attribute, set its value to the correspondent hidden form input
+    if (input.hasAttribute('data-msf-hidden')) {
       const target = this.hiddenForm.querySelector(
         `input[name="${input.name}"]`
       );
 
       if (target instanceof HTMLInputElement) target.value = value;
     }
+  }
+
+  setStepsDisplay(currentStep: number) {
+    if (this.currentStepDisplay)
+      this.currentStepDisplay.textContent = (currentStep + 1).toString();
+
+    if (this.completedPercentageDisplay)
+      this.completedPercentageDisplay.textContent = `${
+        ((currentStep + 1) / this.steps.length) * 100
+      }%`;
   }
 
   createHiddenForm() {
@@ -326,6 +408,7 @@ export default class View {
           '#msf-hidden-form'
         ) as HTMLFormElement)
       : (document.querySelector('#msf-hidden-form') as HTMLFormElement);
+
     this.hiddenSubmitButton = this.hiddenForm.querySelector(
       'input[type="submit"]'
     ) as HTMLInputElement;
@@ -335,10 +418,9 @@ export default class View {
 
     // Create hidden inputs
     inputs.forEach((input) => {
-      const isInput = ['INPUT', 'SELECT', 'TEXTAREA'].includes(input.tagName);
-      const target = isInput
-        ? (input as HTMLInputElement)
-        : input.querySelector<HTMLInputElement>('input, select, textarea');
+      const target = isFormElement(input)
+        ? input
+        : input.querySelector<FormElement>('input, select, textarea');
 
       if (target) {
         const notCreated = !this.hiddenForm.querySelector(
@@ -353,8 +435,8 @@ export default class View {
     });
 
     // Reset Webflow Validation
-    (<any>window).Webflow && (<any>window).Webflow.ready();
     (<any>window).Webflow && (<any>window).Webflow.destroy();
+    (<any>window).Webflow && (<any>window).Webflow.ready();
     (<any>window).Webflow && (<any>window).Webflow.require('ix2').init();
   }
 }

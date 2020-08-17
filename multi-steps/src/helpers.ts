@@ -1,4 +1,4 @@
-import { FormElement } from './types';
+import { FormElement, instances } from './types';
 
 /**
  * Checks if an element is a form element
@@ -14,6 +14,22 @@ export const isFormElement = (
   );
 };
 
+const checkHTMLElement = (element: Element | null): element is HTMLElement => {
+  return element instanceof HTMLElement;
+};
+
+const checkHTMLInputElement = (
+  element: Element | null
+): element is HTMLInputElement => {
+  return element instanceof HTMLInputElement;
+};
+
+const checkHTMLFormElement = (
+  element: Element | null
+): element is HTMLFormElement => {
+  return element instanceof HTMLFormElement;
+};
+
 /**
  * Checks if a selector is valid
  */
@@ -22,19 +38,32 @@ export const select = ({
   selector,
   errorMessage,
   scope = document,
+  instance,
 }: {
   required?: boolean;
   selector?: string;
   errorMessage: string;
   scope?: Document | HTMLElement;
-}) => {
+  instance?: instances;
+}): HTMLElement | HTMLInputElement | HTMLFormElement | undefined => {
   if (!selector) {
     if (!required) return;
     else throw new Error(errorMessage);
   }
+
   const element = scope.querySelector(selector);
-  if (!element) throw new Error(errorMessage);
-  else return element;
+
+  switch (instance) {
+    case 'HTMLInputElement':
+      if (checkHTMLInputElement(element)) return element;
+      else throw new Error(errorMessage);
+    case 'HTMLFormElement':
+      if (checkHTMLFormElement(element)) return element;
+      else throw new Error(errorMessage);
+    default:
+      if (checkHTMLElement(element)) return element;
+      else throw new Error(errorMessage);
+  }
 };
 
 /**
