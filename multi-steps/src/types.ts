@@ -1,18 +1,20 @@
 export interface MSFParams {
-  formSelector: string;
-  nextSelector: string;
-  backSelector?: string;
-  alertSelector?: string;
   alertInteraction?: string;
-  nextButtonText?: string | ButtonText[];
+  alertSelector?: string;
+  alertText?: string;
   backButtonText?: ButtonText[];
+  backSelector?: string;
+  completedPercentageSelector?: string;
+  currentStepSelector?: string;
+  formSelector: string;
+  hiddeButtonsOnSubmit?: boolean;
+  hiddenFormStep?: number;
+  nextButtonText?: string | ButtonText[];
+  nextSelector: string;
+  scrollTopOnStepChange?: boolean;
+  sendHiddenForm?: boolean;
   submitButtonText?: string;
   warningClass?: string;
-  alertText?: string;
-  scrollTopOnStepChange?: boolean;
-  hiddeButtonsOnSubmit?: boolean;
-  sendHiddenForm?: boolean;
-  hiddenFormStep?: number;
 }
 
 export interface ButtonText {
