@@ -12,8 +12,8 @@ export default class View {
   alertText?: string;
   back?: HTMLElement;
   backText?: ButtonText[];
-  completedPercentageDisplay: HTMLElement | null;
-  currentStepDisplay: HTMLElement | null;
+  completedPercentageDisplay?: HTMLElement;
+  currentStepDisplay?: HTMLElement;
   form: HTMLFormElement;
   hiddeButtonsOnSubmit: boolean;
   hiddenForm!: HTMLFormElement;
@@ -40,39 +40,50 @@ export default class View {
    * @param MSFParams
    */
   constructor({
-    formSelector,
-    nextSelector,
-    backSelector,
-    alertSelector,
     alertInteraction,
-    nextButtonText,
-    backButtonText,
-    warningClass,
+    alertSelector,
     alertText,
-    scrollTopOnStepChange = false,
+    backButtonText,
+    backSelector,
+    completedPercentageSelector,
+    currentStepSelector,
+    formSelector,
     hiddeButtonsOnSubmit = true,
-    sendHiddenForm = false,
     hiddenFormStep = 1,
+    nextButtonText,
+    nextSelector,
+    scrollTopOnStepChange = false,
+    sendHiddenForm = false,
+    warningClass,
   }: MSFParams) {
+    // Form Element
     this.form = select({
       required: true,
       selector: formSelector,
       errorMessage: `No form was found with the selector ${formSelector}`,
       instance: 'HTMLFormElement',
     }) as HTMLFormElement;
+
+    // Next Button
     this.next = select({
       required: true,
       selector: nextSelector,
       errorMessage: `No next button was found with the selector ${nextSelector}`,
     }) as HTMLElement;
+
+    // Back Button
     this.back = select({
       selector: backSelector,
       errorMessage: `No back button was found with the selector ${backSelector}`,
     }) as HTMLElement | undefined;
+
+    // Alert Element
     this.alert = select({
       selector: alertSelector,
       errorMessage: `No alert element was found with the selector ${alertSelector}`,
     }) as HTMLElement | undefined;
+
+    // Submit Button
     this.submitButton = select({
       required: true,
       selector: 'input[type="submit"]',
@@ -80,44 +91,86 @@ export default class View {
       scope: this.form,
       instance: 'HTMLInputElement',
     }) as HTMLInputElement;
+
+    // Current Step Display
+    this.currentStepDisplay = select({
+      selector: currentStepSelector,
+      errorMessage: `No alert element was found with the selector ${currentStepSelector}`,
+    }) as HTMLElement | undefined;
+
+    // Completed Percentage Display
+    this.completedPercentageDisplay = select({
+      selector: completedPercentageSelector,
+      errorMessage: `No alert element was found with the selector ${completedPercentageSelector}`,
+    }) as HTMLElement | undefined;
+
+    // Slider
     this.slider = select({
       required: true,
       selector: '.w-slider',
       errorMessage: 'No slider found inside the form, please add one.',
       scope: this.form,
     }) as HTMLElement;
+
+    // Slider Mask
     this.mask = this.form.querySelector('.w-slider-mask') as HTMLElement;
+
+    // Slider Slides (Steps)
     this.steps = this.form.querySelectorAll('.w-slide') as NodeListOf<
       HTMLElement
     >;
+
+    // Slider Right Arrow
     this.rightArrow = this.form.querySelector(
       '.w-slider-arrow-right'
     ) as HTMLElement;
+
+    // Slider Left Arrow
     this.leftArrow = this.form.querySelector(
       '.w-slider-arrow-left'
     ) as HTMLElement;
+
+    // Slider Dots
     this.sliderDots = this.form.querySelectorAll('.w-slider-dot') as NodeListOf<
       HTMLElement
     >;
+
+    // Custom Nav Links
     this.navLinks = document.querySelectorAll('[data-msf-nav]') as NodeListOf<
       HTMLElement
     >;
-    this.currentStepDisplay = document.querySelector<HTMLElement>(
-      '[data-msf="current-step"]'
-    );
-    this.completedPercentageDisplay = document.querySelector<HTMLElement>(
-      '[data-msf="completed-percentage"]'
-    );
+
+    // Next Button Text
     this.nextText = nextButtonText || this.next.textContent || 'Next';
+
+    // Back Button Text
     this.backText = backButtonText;
+
+    // Submit Button Text
     this.submitText = this.submitButton.value;
+
+    // Warning CSS Class
     this.warningClass = warningClass;
+
+    // Alert Text
     this.alertText = alertText;
+
+    // Alert Webflow Interaction
     this.alertInteraction = alertInteraction;
+
+    // Scroll On Step Change
     this.scrollTopOnStepChange = scrollTopOnStepChange;
+
+    // Hide Next and Back Buttons on Submit
     this.hiddeButtonsOnSubmit = hiddeButtonsOnSubmit;
+
+    // Send Hidden Form
     this.sendHiddenForm = sendHiddenForm;
+
+    // Hidden Form Step
     this.hiddenFormStep = hiddenFormStep >= 1 ? hiddenFormStep : 1;
+
+    // Form Inputs
     this.inputs = this.getInputs();
   }
 
@@ -330,7 +383,7 @@ export default class View {
   }
 
   /**
-   * Show alert with a custom Ix2 trigger
+   * Show and hide alert with a custom Ix2 trigger
    */
   customAlert() {
     const trigger = document.querySelector(this.alertInteraction!);
@@ -359,18 +412,16 @@ export default class View {
     value = convertToString(value);
 
     // Get the display element
-    const displayElement =
-      document.querySelector(`[data-msf-value="${input.id}"]`) ||
-      document.querySelector(`[data-msf-value="${input.name}"]`);
+    const displayElement = document.querySelector(
+      `[data-msf-value="${input.id}"]`
+    );
 
     // If a display element is found, set the input value
     if (displayElement) displayElement.textContent = value;
 
     // If the input has the data-msf-hidden attribute, set its value to the correspondent hidden form input
     if (input.hasAttribute('data-msf-hidden')) {
-      const target = this.hiddenForm.querySelector(
-        `input[name="${input.name}"]`
-      );
+      const target = this.hiddenForm.querySelector(`#hidden-${input.id}`);
 
       if (target instanceof HTMLInputElement) target.value = value;
     }
@@ -424,11 +475,11 @@ export default class View {
 
       if (target) {
         const notCreated = !this.hiddenForm.querySelector(
-          `input[name="${target.name}"]`
+          `#hidden-${input.id}`
         );
 
         if (notCreated) {
-          const template = `<input type="hidden" name=${target.name} data-name=${target.name} />`;
+          const template = `<input type="hidden" id="hidden-${target.id}" name="${target.name}" data-name="${target.name}" />`;
           this.hiddenForm.insertAdjacentHTML('beforeend', template);
         }
       }
