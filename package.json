@@ -1,0 +1,28 @@
+{
+  "name": "advanced-webflow-forms",
+  "version": "1.0.0",
+  "description": "Advanced Forms for Webflow",
+  "main": "index.js",
+  "scripts": {
+    "build": "parcel build src/awf.ts --experimental-scope-hoisting --no-source-maps --no-cache --global awf"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brotame/advanced-webflow-forms.git"
+  },
+  "author": "Alex Iglesias - https://brota.me",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brotame/advanced-webflow-forms/issues"
+  },
+  "homepage": "https://github.com/brotame/advanced-webflow-forms#readme",
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.3",
+    "@types/node": "^14.0.27",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.15"
+  }
+}
