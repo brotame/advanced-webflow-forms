@@ -1,0 +1,223 @@
+<script src="https://onedrive.live.com/download?cid=6BF5AC2A9E9521CC&resid=6BF5AC2A9E9521CC%21224128&authkey=AFUe_6QSlbKva7s"></script>
+<script>
+  var Webflow = Webflow || [];
+  Webflow.push(function () {
+    new ConditionalLogic({
+      logicList: [
+        {
+          conditions: [
+            { selector: '#options', operator: 'equal', value: 'Contact Info' },
+          ],
+          actions: [
+            {
+              selector: '.contact-info',
+              action: 'show',
+              clear: false,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#options',
+              operator: 'not-equal',
+              value: 'Contact Info',
+            },
+          ],
+          actions: [
+            {
+              selector: '.contact-info',
+              action: 'hide',
+              clear: false,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#options',
+              operator: 'equal',
+              value: 'Demo',
+            },
+          ],
+          actions: [
+            {
+              selector: '.demo',
+              action: 'show',
+              clear: false,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#options',
+              operator: 'not-equal',
+              value: 'Demo',
+            },
+          ],
+          actions: [
+            {
+              selector: '.demo',
+              action: 'hide',
+              clear: false,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#number',
+              operator: 'greater',
+              value: '5',
+            },
+          ],
+          actions: [
+            {
+              selector: 'custom',
+              action: 'greater-5',
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#number',
+              operator: 'less-equal',
+              value: '5',
+            },
+          ],
+          actions: [
+            {
+              selector: 'custom',
+              action: 'less-5',
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#checkbox',
+              operator: 'equal',
+              value: false,
+            },
+          ],
+          actions: [
+            {
+              selector: '#disabled',
+              action: 'disable',
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#checkbox',
+              operator: 'equal',
+              value: true,
+            },
+          ],
+          actions: [
+            {
+              selector: '#disabled',
+              action: 'enable',
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#checkbox-2',
+              operator: 'equal',
+              value: false,
+            },
+          ],
+          actions: [
+            {
+              selector: '#disabled',
+              action: 'disable',
+              clear: true,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#checkbox-2',
+              operator: 'equal',
+              value: true,
+            },
+          ],
+          actions: [
+            {
+              selector: '#disabled',
+              action: 'enable',
+              clear: true,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#fill',
+              operator: 'filled',
+            },
+          ],
+          actions: [
+            {
+              selector: '#fill-more',
+              action: 'show',
+              clear: true,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#fill',
+              operator: 'empty',
+            },
+          ],
+          actions: [
+            {
+              selector: '#fill-more',
+              action: 'hide',
+              clear: true,
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#contain',
+              operator: 'contain',
+              value: 'love',
+            },
+          ],
+          actions: [
+            {
+              selector: 'custom',
+              action: 'show-hurt',
+            },
+          ],
+        },
+        {
+          conditions: [
+            {
+              selector: '#contain',
+              operator: 'not-contain',
+              value: 'love',
+            },
+          ],
+          actions: [
+            {
+              selector: 'custom',
+              action: 'hide-hurt',
+            },
+          ],
+        },
+      ],
+      submitHidden: false,
+    });
+  });
+</script>
