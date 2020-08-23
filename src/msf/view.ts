@@ -8,7 +8,7 @@ import { MSFParams, FormElement, ButtonText } from './types';
 
 export default class View {
   alert?: HTMLElement;
-  alertInteraction?: string;
+  alertInteraction?: HTMLElement | null;
   alertText?: string;
   back?: HTMLElement;
   backText?: ButtonText[];
@@ -40,7 +40,6 @@ export default class View {
    * @param MSFParams
    */
   constructor({
-    alertInteraction,
     alertSelector,
     alertText,
     backSelector,
@@ -116,9 +115,7 @@ export default class View {
     this.mask = this.form.querySelector('.w-slider-mask') as HTMLElement;
 
     // Slider Slides (Steps)
-    this.steps = this.form.querySelectorAll('.w-slide') as NodeListOf<
-      HTMLElement
-    >;
+    this.steps = this.form.querySelectorAll<HTMLElement>('.w-slide');
 
     // Slider Right Arrow
     this.rightArrow = this.form.querySelector(
@@ -131,14 +128,10 @@ export default class View {
     ) as HTMLElement;
 
     // Slider Dots
-    this.sliderDots = this.form.querySelectorAll('.w-slider-dot') as NodeListOf<
-      HTMLElement
-    >;
+    this.sliderDots = this.form.querySelectorAll<HTMLElement>('.w-slider-dot');
 
     // Custom Nav Links
-    this.navLinks = document.querySelectorAll('[data-msf-nav]') as NodeListOf<
-      HTMLElement
-    >;
+    this.navLinks = document.querySelectorAll<HTMLElement>('[data-msf-nav]');
 
     // Next Button Text
     this.nextText = nextText || this.next.textContent || 'Next';
@@ -156,7 +149,9 @@ export default class View {
     this.alertText = alertText;
 
     // Alert Webflow Interaction
-    this.alertInteraction = alertInteraction;
+    this.alertInteraction = this.alert?.querySelector<HTMLElement>(
+      '[data-msf="alert"]'
+    );
 
     // Scroll On Step Change
     this.scrollTopOnStepChange = scrollTopOnStepChange;
@@ -188,11 +183,12 @@ export default class View {
    * @param index - Index of the requested step
    */
   getInputs(index?: number) {
-    const inputs = index
-      ? this.steps[index].querySelectorAll<FormElement>(
-          'input, select, textarea'
-        )
-      : this.form.querySelectorAll<FormElement>('input, select, textarea');
+    const inputs =
+      typeof index === 'number'
+        ? this.steps[index].querySelectorAll<FormElement>(
+            'input, select, textarea'
+          )
+        : this.form.querySelectorAll<FormElement>('input, select, textarea');
 
     return Array.from(inputs);
   }
@@ -202,6 +198,28 @@ export default class View {
    * @param currentStep - Current step of the form
    */
   setButtonText(currentStep: number) {
+    // If text is an array sets the text to the correspondent step or falls back to the last one
+    const setText = (target: 'back' | 'next') => {
+      const button = target === 'back' ? this.back : this.next;
+      const buttonText = target === 'back' ? this.backText : this.nextText;
+
+      if (button && Array.isArray(buttonText) && buttonText.length > 0) {
+        for (let i = 0; i <= currentStep; i++) {
+          const index = buttonText.findIndex(
+            (object) => +object.step - 1 === currentStep - i
+          );
+
+          if (index >= 0) {
+            button.textContent = buttonText[index].text;
+            break;
+          }
+        }
+      }
+    };
+
+    // Set back text
+    setText('back');
+
     // If current step is the last one, set submit text
     if (currentStep === this.steps.length - 1) {
       this.next.textContent = this.submitText;
@@ -218,32 +236,7 @@ export default class View {
     }
 
     // If nextText is an array, set the text to the correspondent step or fall back to the last one
-    if (Array.isArray(this.nextText) && this.nextText.length > 0) {
-      for (let i = 0; i++; i = currentStep) {
-        const index = this.nextText.findIndex(
-          (object) => object.step - 1 === currentStep - i
-        );
-
-        if (index > 1) {
-          this.next.textContent = this.nextText[index].text;
-          break;
-        }
-      }
-    }
-
-    // If backText exists, set the text to the correspondent step or fall back to the last one
-    if (this.back && Array.isArray(this.backText) && this.backText.length > 0) {
-      for (let i = 0; i++; i = currentStep) {
-        const index = this.backText.findIndex(
-          (object) => object.step - 1 === currentStep - i
-        );
-
-        if (index > 1) {
-          this.back.textContent = this.backText[index].text;
-          break;
-        }
-      }
-    }
+    setText('next');
   }
 
   /**
@@ -257,7 +250,7 @@ export default class View {
    * Clicks the left arrow of the slider
    */
   goBack() {
-    if (this.back) this.leftArrow.click();
+    this.leftArrow.click();
   }
 
   /**
@@ -297,6 +290,7 @@ export default class View {
   /**
    * Hide an element
    * @param element - Element to be hidden
+   * @param display - Sets if the element must be set to display:none
    */
   hideElement(element?: HTMLElement, display: boolean = false) {
     if (!element) return;
@@ -306,7 +300,7 @@ export default class View {
     if (styles.transition === 'all 0s ease 0s')
       element.style.transition = 'opacity 0.2s ease';
 
-    if (display) {
+    if (display && styles.display !== 'none') {
       // Set to display:none after the opacity is set to 0
       const afterTransition = () => {
         element.style.display = 'none';
@@ -323,6 +317,7 @@ export default class View {
   /**
    * Show an element
    * @param element - Element to be shown
+   * @param display - Sets if the element must be set to display:block
    */
   showElement(element?: HTMLElement, display: boolean = false) {
     if (!element) return;
@@ -337,6 +332,9 @@ export default class View {
     });
   }
 
+  /**
+   * Disable the navigation buttons
+   */
   disableButtons() {
     this.next.style.pointerEvents = 'none';
     if (this.back) this.back.style.pointerEvents = 'none';
@@ -361,10 +359,16 @@ export default class View {
     if (this.alertText) alert(this.alertText);
 
     // If alert element is provided, show it
+    if (!this.alert) return;
+
     // If Webflow Ix2 trigger is provided, click it
-    if (this.alertInteraction) this.customAlert();
+    if (this.alertInteraction) {
+      this.alertInteraction.click();
+      return;
+    }
+
     // If not, set display:block
-    if (this.alert) this.showElement(this.alert, true);
+    this.showElement(this.alert, true);
   }
 
   /**
@@ -372,18 +376,16 @@ export default class View {
    */
   hideAlert() {
     // If alert element is provided, hide it
-    // If Webflow Ix2 trigger is provided, click it
-    if (this.alertInteraction) this.customAlert();
-    // If not, set display:block
-    if (this.alert) this.hideElement(this.alert, true);
-  }
+    if (!this.alert) return;
 
-  /**
-   * Show and hide alert with a custom Ix2 trigger
-   */
-  customAlert() {
-    const trigger = document.querySelector(this.alertInteraction!);
-    if (trigger instanceof HTMLElement) trigger.click();
+    // If Webflow Ix2 trigger is provided, click it
+    if (this.alertInteraction) {
+      this.alertInteraction.click();
+      return;
+    }
+
+    // If not, set display:block
+    this.hideElement(this.alert, true);
   }
 
   /**
@@ -408,29 +410,33 @@ export default class View {
     value = convertToString(value);
 
     // Get the display element
-    const displayElement = document.querySelector(
-      `[data-msf-value="${input.id}"]`
-    );
+    const displayElement =
+      document.querySelector(`[data-msf-value="${input.id}"]`) ||
+      document.querySelector(`[data-msf-value="${input.name}"]`);
 
     // If a display element is found, set the input value
     if (displayElement) displayElement.textContent = value;
 
-    // If the input has the data-msf-hidden attribute, set its value to the correspondent hidden form input
-    if (input.hasAttribute('data-msf-hidden')) {
+    // If the input has the [data-msf="hidden"] attribute, set its value to the correspondent hidden form input
+    if (input.matches('[data-msf="hidden"]')) {
       const target = this.hiddenForm.querySelector(`#hidden-${input.id}`);
 
       if (target instanceof HTMLInputElement) target.value = value;
     }
   }
 
+  /**
+   * Set the value of the current step and the completed percentage
+   * @param currentStep - Current step of the form
+   */
   setStepsDisplay(currentStep: number) {
     if (this.currentStepDisplay)
       this.currentStepDisplay.textContent = (currentStep + 1).toString();
 
     if (this.completedPercentageDisplay)
-      this.completedPercentageDisplay.textContent = `${
-        ((currentStep + 1) / this.steps.length) * 100
-      }%`;
+      this.completedPercentageDisplay.textContent = `${Math.round(
+        (currentStep / (this.steps.length - 1)) * 100
+      )}%`;
   }
 
   createHiddenForm() {
@@ -461,7 +467,9 @@ export default class View {
     ) as HTMLInputElement;
 
     // Get inputs that must be sent
-    const inputs = this.form.querySelectorAll<HTMLElement>('[data-msf-hidden]');
+    const inputs = this.form.querySelectorAll<HTMLElement>(
+      '[data-msf="hidden"]'
+    );
 
     // Create hidden inputs
     inputs.forEach((input) => {

@@ -1,5 +1,4 @@
 export interface MSFParams {
-  alertInteraction?: string;
   alertSelector?: string;
   alertText?: string;
   backSelector?: string;
@@ -18,7 +17,7 @@ export interface MSFParams {
 }
 
 export interface ButtonText {
-  step: number;
+  step: number | string;
   text: string;
 }
 

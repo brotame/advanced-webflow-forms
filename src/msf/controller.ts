@@ -16,6 +16,9 @@ export default class Controller {
     // Set mask height to fit the first slide
     this.view.setMaskHeight(this.currentStep);
 
+    // Set buttons text
+    this.view.setButtonText(this.currentStep);
+
     // Show the current step
     this.view.setStepsDisplay(this.currentStep);
 
@@ -124,6 +127,9 @@ export default class Controller {
 
     // Set next button text
     this.view.setButtonText(previousStep);
+
+    // Set steps display
+    this.view.setStepsDisplay(previousStep);
 
     // Hide alert
     this.hideAlert();
