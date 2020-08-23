@@ -15,7 +15,7 @@ import {
 } from './types';
 
 /**
- * Conditional Logic for Webflow forms
+ * Conditional Logic for Webflow forms.
  * By: Alex Iglesias - https://brota.me
  */
 export default class {
