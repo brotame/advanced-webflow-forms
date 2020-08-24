@@ -7,15 +7,15 @@ import {
 } from './helpers';
 import {
   Logic,
+  Actions,
   Action,
   LogicConstructor,
   StoreData,
   FormElement,
-  InteractionParams,
 } from './types';
 
 /**
- * Conditional Logic for Webflow forms
+ * Conditional Logic for Webflow forms.
  * By: Alex Iglesias - https://brota.me
  */
 export default class {
@@ -40,7 +40,7 @@ export default class {
 
       // Store data of all targets of the actions
       logic.actions.forEach((action) => {
-        this.storeInputData(action.selector);
+        this.storeInputData(action.selector, action.action);
       });
     });
   }
@@ -51,13 +51,14 @@ export default class {
    */
   addEvents(logic: Logic) {
     logic.conditions.forEach((condition) => {
+      // Select condition origin
       const element = document.querySelector(condition.selector);
       if (!isFormElement(element)) {
         throwError(condition.selector, 'wrong-selector');
         return;
       }
 
-      // Check conditions on load
+      // Check conditions
       if (this.checkConditionsOnLoad) this.checkConditions(logic);
 
       // Debounce Check Conditions Function
@@ -85,32 +86,24 @@ export default class {
    * Stores input data to keep track of each elements status (visible, required, enabled)
    * @param selector - Query selector of the element (group or single)
    */
-  storeInputData(selector: string) {
+  storeInputData(selector: string, action: Actions) {
     // If it's a custom Ix2 interaction, don't store it.
-    if (selector === 'custom') return;
+    if (action === 'custom') return;
 
-    const element = document.querySelector(selector);
-    if (!element) {
+    const parent = document.querySelector(selector);
+    if (!(parent instanceof HTMLElement)) {
       throwError(selector, 'wrong-selector');
       return;
     }
 
-    const targets = this.getTargets(element);
+    const targets = this.getTargets(parent);
 
     targets.forEach((target) => {
-      // Get element data
-      const parent = target.closest('[data-logic="parent"]');
-      if (!(parent instanceof HTMLElement)) {
-        throwError(selector, 'no-parent');
-        return;
-      }
-
       const data: StoreData = {
         element: target,
         visible: isVisible(target),
         required: target.required,
         disabled: target.disabled,
-        parent: parent,
       };
 
       // Find element index in store
@@ -198,27 +191,24 @@ export default class {
    */
   triggerAction({ selector, action, clear = false }: Action) {
     // If it's a custom Ix2 interaction, trigger it and return.
-    if (selector === 'custom') {
-      this.triggerInteraction({ action, custom: true });
-      return;
-    }
-
-    const element = document.querySelector(selector);
-    if (!element) {
+    const parent = document.querySelector(selector);
+    if (!(parent instanceof HTMLElement)) {
       throwError(selector, 'wrong-selector');
       return;
     }
 
-    // Get element targets
-    const targets = this.getTargets(element);
+    if (action === 'custom') {
+      this.triggerInteraction(parent, action);
+      return;
+    }
 
-    // Triggered parents will be stored in the array to avoid multiple triggers on the same element
-    const triggeredParents: HTMLElement[] = [];
+    // Get element targets
+    const targets = this.getTargets(parent);
 
     targets.forEach((target) => {
       // Get stored data
       const storedData = this.getStoredData(target);
-      const { visible, required, disabled, parent } = storedData;
+      const { visible, required, disabled } = storedData;
 
       // If element already meets the condition, abort
       if (action === 'show' && visible) return;
@@ -229,32 +219,16 @@ export default class {
       if (action === 'unrequire' && !required) return;
 
       // Check for Webflow Ix2 Interaction
-      const notTriggered = !triggeredParents.includes(parent);
-      let interactionExists = false;
-
-      if (notTriggered) {
-        interactionExists = this.triggerInteraction({
-          parent,
-          action,
-        });
-        triggeredParents.push(parent);
-      }
+      const interactionExists = this.triggerInteraction(parent, action);
 
       // Perform the action
       switch (action) {
         case 'show':
-          this.showInput(
-            target,
-            parent,
-            interactionExists,
-            notTriggered,
-            required,
-            disabled
-          );
+          this.showInput(target, parent, interactionExists, required, disabled);
           break;
 
         case 'hide':
-          this.hideInput(target, parent, interactionExists, notTriggered);
+          this.hideInput(target, parent, interactionExists);
           break;
 
         case 'enable':
@@ -287,7 +261,6 @@ export default class {
    * @param target - Target to be shown
    * @param parent - DOM Node of the parent
    * @param interactionExists - Determines if Webflow Ix2 was found
-   * @param notTriggered - Determines if Webflow Ix2 was already triggered
    * @param required - Determines if the input is required
    * @param disabled - Determines if the input is disabled
    */
@@ -295,12 +268,11 @@ export default class {
     target: FormElement,
     parent: HTMLElement,
     interactionExists: boolean,
-    notTriggered: boolean,
     required: boolean,
     disabled: boolean
   ) {
     // If parent has no Webflow Ix2 trigger, set to display block
-    if (!interactionExists && notTriggered) parent.style.display = 'block';
+    if (!interactionExists) parent.style.display = 'block';
 
     // Restore to stored values
     target.required = required;
@@ -315,16 +287,14 @@ export default class {
    * @param target - Target to be hidden
    * @param parent - DOM Node of the parent
    * @param interactionExists - Determines if Webflow Ix2 was found
-   * @param notTriggered - Determines if Webflow Ix2 was already triggered
    */
   hideInput(
     target: FormElement,
     parent: HTMLElement,
-    interactionExists: boolean,
-    notTriggered: boolean
+    interactionExists: boolean
   ) {
     // If parent has no Webflow Ix2 trigger, set to display none
-    if (!interactionExists && notTriggered) parent.style.display = 'none';
+    if (!interactionExists) parent.style.display = 'none';
 
     // If hidden inputs must not be submitted, disable them.
     if (!this.submitHiddenInputs) target.disabled = true;
@@ -405,13 +375,17 @@ export default class {
 
   /**
    * Trigger custom Webflow Interaction
-   * @param params - InteractionParams object
+   * @param parent - Triggered parent
+   * @param action - Action to perform
    */
-  triggerInteraction(params: InteractionParams) {
-    // Search for Webflow Ix2 trigger and click it if found
-    const container = params.custom ? document : params.parent;
-    const trigger = container.querySelector(`[data-logic="${params.action}"]`);
+  triggerInteraction(parent: HTMLElement, action: Actions) {
+    // Search for Webflow Ix2 trigger
+    const trigger =
+      action === 'custom'
+        ? parent
+        : parent.querySelector(`[data-logic="${action}"]`);
 
+    // Click it if found
     if (trigger instanceof HTMLElement) {
       trigger.click();
       return true;

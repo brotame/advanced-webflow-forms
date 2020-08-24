@@ -4,7 +4,7 @@
   "description": "Advanced Forms for Webflow",
   "main": "index.js",
   "scripts": {
-    "build": "parcel build src/awf.ts --experimental-scope-hoisting --no-source-maps --no-cache --global awf"
+    "build": "parcel build src/awf.ts --experimental-scope-hoisting --no-source-maps --no-cache --global AWF"
   },
   "repository": {
     "type": "git",
