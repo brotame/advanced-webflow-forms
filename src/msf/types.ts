@@ -12,7 +12,6 @@ export interface MSFParams {
   nextText?: ButtonText[];
   scrollTopOnStepChange?: boolean;
   sendHiddenForm?: boolean;
-  submitButtonText?: string;
   warningClass?: string;
 }
 

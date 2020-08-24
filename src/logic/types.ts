@@ -14,9 +14,18 @@ interface Condition {
   value: string | boolean | number;
 }
 
+export type Actions =
+  | 'show'
+  | 'hide'
+  | 'enable'
+  | 'disable'
+  | 'require'
+  | 'unrequire'
+  | 'custom';
+
 export interface Action {
   selector: string; // Selector of the target element
-  action: string; // Action to be triggered (show, hide, enable, disable, require, unrequire)
+  action: Actions; // Action to be triggered
   clear: boolean; // Determines if the input value has to be cleared when the action is triggered
 }
 
@@ -37,14 +46,9 @@ export interface StoreData {
   visible: boolean;
   required: boolean;
   disabled: boolean;
-  parent: HTMLElement;
 }
 
 export type FormElement =
   | HTMLInputElement
   | HTMLSelectElement
   | HTMLTextAreaElement;
-
-export type InteractionParams =
-  | { custom: true; parent?: HTMLElement; action: string }
-  | { custom?: false; parent: HTMLElement; action: string };
