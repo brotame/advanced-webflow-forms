@@ -16,6 +16,9 @@ export default class Controller {
     // Set mask height to fit the first slide
     this.view.setMaskHeight(this.currentStep);
 
+    // Disable back button
+    this.view.disableElement(this.view.back);
+
     // Set buttons text
     this.view.setButtonText(this.currentStep);
 
@@ -88,8 +91,8 @@ export default class Controller {
     // Increase step count
     this.currentStep++;
 
-    // If current step is 1, show back button
-    if (this.currentStep === 1) this.view.showElement(this.view.back);
+    // If current step is 1, enable back button
+    if (this.currentStep === 1) this.view.enableElement(this.view.back);
 
     // Perform actions depending on current step
     if (this.currentStep === this.view.steps.length) {
@@ -136,6 +139,9 @@ export default class Controller {
 
     // Scroll to the top of the form
     this.view.scrollTop();
+
+    // Disable back button
+    this.view.disableElement(this.view.back);
 
     // Set new current step
     this.currentStep = previousStep;

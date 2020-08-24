@@ -311,7 +311,7 @@ export default class View {
 
     // Set opacity to 0;
     element.style.opacity = '0';
-    element.style.pointerEvents = 'none';
+    this.disableElement(element);
   }
 
   /**
@@ -328,17 +328,35 @@ export default class View {
     // Reset opacity and pointer events
     requestAnimationFrame(() => {
       element.style.opacity = '';
-      element.style.pointerEvents = '';
+      this.enableElement(element);
     });
+  }
+
+  /**
+   * Set an element style to pointer-events: none;
+   * @param element - Element to be disabled
+   */
+  disableElement(element?: HTMLElement) {
+    if (!element) return;
+    element.style.pointerEvents = 'none';
+  }
+
+  /**
+   * Remove pointer-events: none; style
+   * @param element - Element to be disabled
+   */
+  enableElement(element?: HTMLElement) {
+    if (!element) return;
+    element.style.pointerEvents = '';
   }
 
   /**
    * Disable the navigation buttons
    */
   disableButtons() {
-    this.next.style.pointerEvents = 'none';
-    if (this.back) this.back.style.pointerEvents = 'none';
-    this.navLinks.forEach((link) => (link.style.pointerEvents = 'none'));
+    this.disableElement(this.next);
+    this.disableElement(this.back);
+    this.navLinks.forEach((link) => this.disableElement(link));
   }
 
   /**
