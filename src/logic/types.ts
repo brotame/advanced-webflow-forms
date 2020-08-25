@@ -43,7 +43,6 @@ export interface LogicConstructor {
 
 export interface StoreData {
   element: FormElement;
-  visible: boolean;
   required: boolean;
   disabled: boolean;
 }

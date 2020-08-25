@@ -101,7 +101,6 @@ export default class {
     targets.forEach((target) => {
       const data: StoreData = {
         element: target,
-        visible: isVisible(target),
         required: target.required,
         disabled: target.disabled,
       };
@@ -190,13 +189,13 @@ export default class {
    * @param params - Action object
    */
   triggerAction({ selector, action, clear = false }: Action) {
-    // If it's a custom Ix2 interaction, trigger it and return.
     const parent = document.querySelector(selector);
     if (!(parent instanceof HTMLElement)) {
       throwError(selector, 'wrong-selector');
       return;
     }
 
+    // If it's a custom Ix2 interaction, trigger it and return.
     if (action === 'custom') {
       this.triggerInteraction(parent, action);
       return;
@@ -208,7 +207,8 @@ export default class {
     targets.forEach((target) => {
       // Get stored data
       const storedData = this.getStoredData(target);
-      const { visible, required, disabled } = storedData;
+      const { required, disabled } = storedData;
+      const visible = isVisible(target);
 
       // If element already meets the condition, abort
       if (action === 'show' && visible) return;
@@ -277,9 +277,6 @@ export default class {
     // Restore to stored values
     target.required = required;
     target.disabled = disabled;
-
-    // Update stored data
-    this.updateStoredData(target, 'visible', true);
   }
 
   /**
@@ -301,9 +298,6 @@ export default class {
 
     // Unrequire hidden inputs to avoid form submit bugs
     target.required = false;
-
-    // Update stored data
-    this.updateStoredData(target, 'visible', false);
   }
 
   /**
@@ -383,7 +377,7 @@ export default class {
     const trigger =
       action === 'custom'
         ? parent
-        : parent.querySelector(`[data-logic="${action}"]`);
+        : parent.querySelector(`:scope > [data-logic="${action}"]`);
 
     // Click it if found
     if (trigger instanceof HTMLElement) {
@@ -410,7 +404,7 @@ export default class {
    */
   updateStoredData(
     target: FormElement,
-    key: 'visible' | 'required' | 'disabled',
+    key: 'required' | 'disabled',
     value: boolean
   ) {
     // Find index of element
