@@ -58,6 +58,16 @@ export default class {
         return;
       }
 
+      // If it's a radio group, select all components
+      const targets =
+        element.type === 'radio'
+          ? Array.from(
+              document.querySelectorAll<HTMLInputElement>(
+                `input[name="${element.name}"]`
+              )
+            )
+          : [element];
+
       // Check conditions
       if (this.checkConditionsOnLoad) this.checkConditions(logic);
 
@@ -75,9 +85,11 @@ export default class {
       ];
 
       // Add event listener
-      element.addEventListener('input', () => {
-        if (debounceTypes.includes(element.type)) debouncedCheck(logic);
-        else this.checkConditions(logic);
+      targets.forEach((target) => {
+        target.addEventListener('input', () => {
+          if (debounceTypes.includes(element.type)) debouncedCheck(logic);
+          else this.checkConditions(logic);
+        });
       });
     });
   }
@@ -128,12 +140,23 @@ export default class {
       }
 
       // Get value of the origin
-      const elementValue = convertToString(
-        element.type === 'checkbox'
-          ? (<HTMLInputElement>element).checked
-          : element.value
-      );
+      let elementValue: string = '';
+      switch (element.type) {
+        case 'checkbox':
+          elementValue = convertToString((<HTMLInputElement>element).checked);
+          break;
+        case 'radio':
+          const checkedOption = document.querySelector(
+            `input[name="${element.name}"]:checked`
+          );
+          if (checkedOption instanceof HTMLInputElement)
+            elementValue = checkedOption.value;
+          break;
+        default:
+          elementValue = element.value;
+      }
 
+      // Get the target value
       const targetValue = convertToString(condition.value);
 
       // Check condition
