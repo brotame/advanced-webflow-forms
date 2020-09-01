@@ -140,11 +140,11 @@ export default class Controller {
     // Scroll to the top of the form
     this.view.scrollTop();
 
-    // Disable back button
-    this.view.disableElement(this.view.back);
-
     // Set new current step
     this.currentStep = previousStep;
+
+    // Disable back button
+    if (this.currentStep === 0) this.view.disableElement(this.view.back);
   }
 
   /**
@@ -164,6 +164,7 @@ export default class Controller {
       this.currentStep = step;
       this.view.setMaskHeight(this.currentStep);
       this.view.setButtonText(this.currentStep);
+      if (this.currentStep === 0) this.view.disableElement(this.view.back);
     }
   }
 
