@@ -18,9 +18,9 @@
   "homepage": "https://github.com/brotame/advanced-webflow-forms#readme",
   "devDependencies": {
     "@types/lodash-es": "^4.17.3",
-    "@types/node": "^14.0.27",
+    "@types/node": "^14.14.7",
     "parcel-bundler": "^1.12.4",
-    "typescript": "^3.9.7"
+    "typescript": "^4.0.5"
   },
   "dependencies": {
     "lodash-es": "^4.17.15"
