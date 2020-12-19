@@ -510,6 +510,6 @@ export default class View {
     // Reset Webflow Validation
     (<any>window).Webflow && (<any>window).Webflow.destroy();
     (<any>window).Webflow && (<any>window).Webflow.ready();
-    (<any>window).Webflow && (<any>window).Webflow.require('ix2')?.init();
+    (<any>window).Webflow && (<any>window).Webflow.require('ix2').init();
   }
 }

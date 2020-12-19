@@ -144,7 +144,7 @@ export default class Controller {
     this.currentStep = previousStep;
 
     // Disable back button
-    // if (this.currentStep === 0) this.view.disableElement(this.view.back);
+    if (this.currentStep === 0) this.view.disableElement(this.view.back);
   }
 
   /**
