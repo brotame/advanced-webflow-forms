@@ -20,9 +20,4 @@ export interface ButtonText {
   text: string;
 }
 
-export type FormElement =
-  | HTMLInputElement
-  | HTMLSelectElement
-  | HTMLTextAreaElement;
-
-export type instances = 'HTMLElement' | 'HTMLInputElement' | 'HTMLFormElement';
+export type FormElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;

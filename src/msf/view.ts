@@ -1,9 +1,4 @@
-import {
-  select,
-  getDistanceFromTop,
-  convertToString,
-  isFormElement,
-} from './helpers';
+import { getDistanceFromTop, convertToString, isFormElement } from './helpers';
 import { MSFParams, FormElement, ButtonText } from './types';
 
 export default class View {
@@ -20,17 +15,17 @@ export default class View {
   hiddenFormStep: number;
   hiddenSubmitButton!: HTMLInputElement;
   inputs: FormElement[];
-  leftArrow: HTMLElement;
-  mask: HTMLElement;
+  leftArrow: HTMLDivElement;
+  mask: HTMLDivElement;
   navLinks: NodeListOf<HTMLElement>;
-  next: HTMLElement;
+  next;
   nextText: string | ButtonText[];
-  rightArrow: HTMLElement;
+  rightArrow: HTMLDivElement;
   scrollTopOnStepChange: boolean;
   sendHiddenForm: boolean;
-  slider: HTMLElement;
+  slider: HTMLDivElement;
   sliderDots: NodeListOf<HTMLElement>;
-  steps: NodeListOf<HTMLElement>;
+  steps: NodeListOf<HTMLDivElement>;
   submitButton: HTMLInputElement;
   submitText: string;
   warningClass?: string;
@@ -56,79 +51,81 @@ export default class View {
     warningClass,
   }: MSFParams) {
     // Form Element
-    this.form = select({
-      required: true,
-      selector: formSelector,
-      errorMessage: `No form was found with the selector ${formSelector}`,
-      instance: 'HTMLFormElement',
-    }) as HTMLFormElement;
+    const form = document.querySelector<HTMLFormElement>(formSelector);
+    if (form) this.form = form;
+    else throw new Error(`No form was found with the selector ${formSelector}`);
 
     // Next Button
-    this.next = select({
-      required: true,
-      selector: nextSelector,
-      errorMessage: `No next button was found with the selector ${nextSelector}`,
-    }) as HTMLElement;
+    const next = document.querySelector<HTMLElement>(nextSelector);
+    if (next) this.next = next;
+    else throw new Error(`No next button was found with the selector ${nextSelector}`);
 
     // Back Button
-    this.back = select({
-      selector: backSelector,
-      errorMessage: `No back button was found with the selector ${backSelector}`,
-    }) as HTMLElement | undefined;
+    if (backSelector) {
+      const back = document.querySelector<HTMLElement>(backSelector);
+      if (back) this.back = back;
+      else throw new Error(`No back button was found with the selector ${backSelector}`);
+    }
 
     // Alert Element
-    this.alert = select({
-      selector: alertSelector,
-      errorMessage: `No alert element was found with the selector ${alertSelector}`,
-    }) as HTMLElement | undefined;
+    if (alertSelector) {
+      const alert = document.querySelector<HTMLElement>(alertSelector);
+      if (alert) this.alert = alert;
+      else throw new Error(`No alert element was found with the selector ${alertSelector}`);
+    }
 
     // Submit Button
-    this.submitButton = select({
-      required: true,
-      selector: 'input[type="submit"]',
-      errorMessage: 'No submit button was found in the form, please add one.',
-      scope: this.form,
-      instance: 'HTMLInputElement',
-    }) as HTMLInputElement;
+    const submitButton = form.querySelector<HTMLInputElement>('input[type="submit"]');
+    if (submitButton) this.submitButton = submitButton;
+    else throw new Error(`No next button was found with the selector ${nextSelector}`);
 
     // Current Step Display
-    this.currentStepDisplay = select({
-      selector: currentStepSelector,
-      errorMessage: `No alert element was found with the selector ${currentStepSelector}`,
-    }) as HTMLElement | undefined;
+    if (currentStepSelector) {
+      const currentStepDisplay = document.querySelector<HTMLElement>(currentStepSelector);
+      if (currentStepDisplay) this.currentStepDisplay = currentStepDisplay;
+      else
+        throw new Error(
+          `No current step display element was found with the selector ${currentStepSelector}`
+        );
+    }
 
     // Completed Percentage Display
-    this.completedPercentageDisplay = select({
-      selector: completedPercentageSelector,
-      errorMessage: `No alert element was found with the selector ${completedPercentageSelector}`,
-    }) as HTMLElement | undefined;
+    if (completedPercentageSelector) {
+      const completedPercentageDisplay = document.querySelector<HTMLElement>(
+        completedPercentageSelector
+      );
+      if (completedPercentageDisplay) this.completedPercentageDisplay = completedPercentageDisplay;
+      else
+        throw new Error(
+          `No completed percentage display element was found with the selector ${completedPercentageSelector}`
+        );
+    }
 
     // Slider
-    this.slider = select({
-      required: true,
-      selector: '.w-slider',
-      errorMessage: 'No slider found inside the form, please add one.',
-      scope: this.form,
-    }) as HTMLElement;
+    const slider = form.querySelector<HTMLDivElement>('.w-slider');
+    if (slider) this.slider = slider;
+    else throw new Error('No slider found inside the form, please add one.');
 
     // Slider Mask
-    this.mask = this.form.querySelector('.w-slider-mask') as HTMLElement;
+    const mask = slider.querySelector<HTMLDivElement>('.w-slider-mask');
+    if (mask) this.mask = mask;
+    else throw new Error('No mask found inside the slider!');
 
     // Slider Slides (Steps)
-    this.steps = this.form.querySelectorAll<HTMLElement>('.w-slide');
+    this.steps = slider.querySelectorAll<HTMLDivElement>('.w-slide');
 
     // Slider Right Arrow
-    this.rightArrow = this.form.querySelector(
-      '.w-slider-arrow-right'
-    ) as HTMLElement;
+    const rightArrow = slider.querySelector<HTMLDivElement>('.w-slider-arrow-right');
+    if (rightArrow) this.rightArrow = rightArrow;
+    else throw new Error('No right arrow found inside the slider!');
 
     // Slider Left Arrow
-    this.leftArrow = this.form.querySelector(
-      '.w-slider-arrow-left'
-    ) as HTMLElement;
+    const leftArrow = slider.querySelector<HTMLDivElement>('.w-slider-arrow-left');
+    if (leftArrow) this.leftArrow = leftArrow;
+    else throw new Error('No left arrow found inside the slider!');
 
     // Slider Dots
-    this.sliderDots = this.form.querySelectorAll<HTMLElement>('.w-slider-dot');
+    this.sliderDots = slider.querySelectorAll<HTMLDivElement>('.w-slider-dot');
 
     // Custom Nav Links
     this.navLinks = document.querySelectorAll<HTMLElement>('[data-msf-nav]');
@@ -149,9 +146,7 @@ export default class View {
     this.alertText = alertText;
 
     // Alert Webflow Interaction
-    this.alertInteraction = this.alert?.querySelector<HTMLElement>(
-      '[data-msf="alert"]'
-    );
+    this.alertInteraction = this.alert?.querySelector<HTMLElement>('[data-msf="alert"]');
 
     // Scroll On Step Change
     this.scrollTopOnStepChange = scrollTopOnStepChange;
@@ -185,9 +180,7 @@ export default class View {
   getInputs(index?: number) {
     const inputs =
       typeof index === 'number'
-        ? this.steps[index].querySelectorAll<FormElement>(
-            'input, select, textarea'
-          )
+        ? this.steps[index].querySelectorAll<FormElement>('input, select, textarea')
         : this.form.querySelectorAll<FormElement>('input, select, textarea');
 
     return Array.from(inputs);
@@ -205,9 +198,7 @@ export default class View {
 
       if (button && Array.isArray(buttonText) && buttonText.length > 0) {
         for (let i = 0; i <= currentStep; i++) {
-          const index = buttonText.findIndex(
-            (object) => +object.step - 1 === currentStep - i
-          );
+          const index = buttonText.findIndex((object) => +object.step - 1 === currentStep - i);
 
           if (index >= 0) {
             button.textContent = buttonText[index].text;
@@ -227,10 +218,7 @@ export default class View {
     }
 
     // If nextText is a string, set the text only if current step is second-to-last
-    if (
-      typeof this.nextText === 'string' &&
-      currentStep === this.steps.length - 2
-    ) {
+    if (typeof this.nextText === 'string' && currentStep === this.steps.length - 2) {
       this.next.textContent = this.nextText;
       return;
     }
@@ -297,8 +285,7 @@ export default class View {
 
     // Check if the element has opacity transition
     const styles = getComputedStyle(element);
-    if (styles.transition === 'all 0s ease 0s')
-      element.style.transition = 'opacity 0.2s ease';
+    if (styles.transition === 'all 0s ease 0s') element.style.transition = 'opacity 0.2s ease';
 
     if (display && styles.display !== 'none') {
       // Set to display:none after the opacity is set to 0
@@ -448,8 +435,7 @@ export default class View {
    * @param currentStep - Current step of the form
    */
   setStepsDisplay(currentStep: number) {
-    if (this.currentStepDisplay)
-      this.currentStepDisplay.textContent = (currentStep + 1).toString();
+    if (this.currentStepDisplay) this.currentStepDisplay.textContent = (currentStep + 1).toString();
 
     if (this.completedPercentageDisplay)
       this.completedPercentageDisplay.textContent = `${Math.round(
@@ -475,9 +461,7 @@ export default class View {
 
     // Store elements
     this.hiddenForm = formParent.parentElement
-      ? (formParent.parentElement.querySelector(
-          '#msf-hidden-form'
-        ) as HTMLFormElement)
+      ? (formParent.parentElement.querySelector('#msf-hidden-form') as HTMLFormElement)
       : (document.querySelector('#msf-hidden-form') as HTMLFormElement);
 
     this.hiddenSubmitButton = this.hiddenForm.querySelector(
@@ -485,9 +469,7 @@ export default class View {
     ) as HTMLInputElement;
 
     // Get inputs that must be sent
-    const inputs = this.form.querySelectorAll<HTMLElement>(
-      '[data-msf="hidden"]'
-    );
+    const inputs = this.form.querySelectorAll<HTMLElement>('[data-msf="hidden"]');
 
     // Create hidden inputs
     inputs.forEach((input) => {
@@ -496,9 +478,7 @@ export default class View {
         : input.querySelector<FormElement>('input, select, textarea');
 
       if (target) {
-        const notCreated = !this.hiddenForm.querySelector(
-          `#hidden-${input.id}`
-        );
+        const notCreated = !this.hiddenForm.querySelector(`#hidden-${input.id}`);
 
         if (notCreated) {
           const template = `<input type="hidden" id="hidden-${target.id}" name="${target.name}" data-name="${target.name}" />`;

@@ -1,12 +1,10 @@
-import { FormElement, instances } from './types';
+import { FormElement } from './types';
 
 /**
  * Checks if an element is a form element
  * @param element
  */
-export const isFormElement = (
-  element: Element | EventTarget | null
-): element is FormElement => {
+export const isFormElement = (element: Element | EventTarget | null): element is FormElement => {
   return (
     element instanceof HTMLInputElement ||
     element instanceof HTMLSelectElement ||
@@ -14,68 +12,12 @@ export const isFormElement = (
   );
 };
 
-const checkHTMLElement = (element: Element | null): element is HTMLElement => {
-  return element instanceof HTMLElement;
-};
-
-const checkHTMLInputElement = (
-  element: Element | null
-): element is HTMLInputElement => {
-  return element instanceof HTMLInputElement;
-};
-
-const checkHTMLFormElement = (
-  element: Element | null
-): element is HTMLFormElement => {
-  return element instanceof HTMLFormElement;
-};
-
-/**
- * Checks if a selector is valid
- */
-export const select = ({
-  required = false,
-  selector,
-  errorMessage,
-  scope = document,
-  instance,
-}: {
-  required?: boolean;
-  selector?: string;
-  errorMessage: string;
-  scope?: Document | HTMLElement;
-  instance?: instances;
-}): HTMLElement | HTMLInputElement | HTMLFormElement | undefined => {
-  if (!selector) {
-    if (!required) return;
-    else throw new Error(errorMessage);
-  }
-
-  const element = scope.querySelector(selector);
-
-  switch (instance) {
-    case 'HTMLInputElement':
-      if (checkHTMLInputElement(element)) return element;
-      else throw new Error(errorMessage);
-    case 'HTMLFormElement':
-      if (checkHTMLFormElement(element)) return element;
-      else throw new Error(errorMessage);
-    default:
-      if (checkHTMLElement(element)) return element;
-      else throw new Error(errorMessage);
-  }
-};
-
 /**
  * Checks if an element is visible
  * @param {HTMLElement} element
  */
 export const isVisible = (element: HTMLElement) =>
-  !!(
-    element.offsetWidth ||
-    element.offsetHeight ||
-    element.getClientRects().length
-  );
+  !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
 
 /**
  * Gets distance of an element to the top of the window
@@ -88,10 +30,7 @@ export const getDistanceFromTop = (target: HTMLElement) => {
   if (element.offsetParent) {
     do {
       location += element.offsetTop;
-      element =
-        element.offsetParent instanceof HTMLElement
-          ? element.offsetParent
-          : null;
+      element = element.offsetParent instanceof HTMLElement ? element.offsetParent : null;
     } while (element);
   }
 
