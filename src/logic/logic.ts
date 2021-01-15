@@ -1,18 +1,6 @@
 import debounce from 'lodash-es/debounce';
-import {
-  throwError,
-  isVisible,
-  convertToString,
-  isFormElement,
-} from './helpers';
-import {
-  Logic,
-  Actions,
-  Action,
-  LogicConstructor,
-  StoreData,
-  FormElement,
-} from './types';
+import { throwError, isVisible, convertToString, isFormElement } from './helpers';
+import { Logic, Actions, Action, LogicConstructor, StoreData, FormElement } from './types';
 
 /**
  * Conditional Logic for Webflow forms.
@@ -61,11 +49,7 @@ export default class {
       // If it's a radio group, select all components
       const targets =
         element.type === 'radio'
-          ? Array.from(
-              document.querySelectorAll<HTMLInputElement>(
-                `input[name="${element.name}"]`
-              )
-            )
+          ? Array.from(document.querySelectorAll<HTMLInputElement>(`input[name="${element.name}"]`))
           : [element];
 
       // Check conditions
@@ -146,11 +130,8 @@ export default class {
           elementValue = convertToString((<HTMLInputElement>element).checked);
           break;
         case 'radio':
-          const checkedOption = document.querySelector(
-            `input[name="${element.name}"]:checked`
-          );
-          if (checkedOption instanceof HTMLInputElement)
-            elementValue = checkedOption.value;
+          const checkedOption = document.querySelector(`input[name="${element.name}"]:checked`);
+          if (checkedOption instanceof HTMLInputElement) elementValue = checkedOption.value;
           break;
         default:
           elementValue = element.value;
@@ -226,6 +207,7 @@ export default class {
 
     // Get element targets
     const targets = this.getTargets(parent);
+    let interactionTriggered = false;
 
     targets.forEach((target) => {
       // Get stored data
@@ -234,24 +216,24 @@ export default class {
       const visible = isVisible(target);
 
       // If element already meets the condition, abort
-      if (action === 'show' && visible) return;
-      if (action === 'hide' && !visible) return;
-      if (action === 'enable' && !disabled) return;
-      if (action === 'disable' && disabled) return;
-      if (action === 'require' && required) return;
-      if (action === 'unrequire' && !required) return;
+      // if (action === 'show' && visible) return;
+      // if (action === 'hide' && !visible) return;
+      // if (action === 'enable' && !disabled) return;
+      // if (action === 'disable' && disabled) return;
+      // if (action === 'require' && required) return;
+      // if (action === 'unrequire' && !required) return;
 
       // Check for Webflow Ix2 Interaction
-      const interactionExists = this.triggerInteraction(parent, action);
+      if (!interactionTriggered) interactionTriggered = this.triggerInteraction(parent, action);
 
       // Perform the action
       switch (action) {
         case 'show':
-          this.showInput(target, parent, interactionExists, required, disabled);
+          this.showInput(target, parent, interactionTriggered, required, disabled);
           break;
 
         case 'hide':
-          this.hideInput(target, parent, interactionExists);
+          this.hideInput(target, parent, interactionTriggered);
           break;
 
         case 'enable':
@@ -308,11 +290,7 @@ export default class {
    * @param parent - DOM Node of the parent
    * @param interactionExists - Determines if Webflow Ix2 was found
    */
-  hideInput(
-    target: FormElement,
-    parent: HTMLElement,
-    interactionExists: boolean
-  ) {
+  hideInput(target: FormElement, parent: HTMLElement, interactionExists: boolean) {
     // If parent has no Webflow Ix2 trigger, set to display none
     if (!interactionExists) parent.style.display = 'none';
 
@@ -383,11 +361,7 @@ export default class {
     // If element is not a form element, then is a group of elements
     return isFormElement(element)
       ? [element]
-      : Array.from(
-          element.querySelectorAll('input, select, textarea') as NodeListOf<
-            FormElement
-          >
-        );
+      : Array.from(element.querySelectorAll('input, select, textarea') as NodeListOf<FormElement>);
   }
 
   /**
@@ -398,9 +372,7 @@ export default class {
   triggerInteraction(parent: HTMLElement, action: Actions) {
     // Search for Webflow Ix2 trigger
     const trigger =
-      action === 'custom'
-        ? parent
-        : parent.querySelector(`:scope > [data-logic="${action}"]`);
+      action === 'custom' ? parent : parent.querySelector(`:scope > [data-logic="${action}"]`);
 
     // Click it if found
     if (trigger instanceof HTMLElement) {
@@ -425,11 +397,7 @@ export default class {
    * @param key - Key to update (visible, required, enabled)
    * @param value - Boolean value to assign
    */
-  updateStoredData(
-    target: FormElement,
-    key: 'required' | 'disabled',
-    value: boolean
-  ) {
+  updateStoredData(target: FormElement, key: 'required' | 'disabled', value: boolean) {
     // Find index of element
     const index = this.store.findIndex((data) => data.element === target);
 
