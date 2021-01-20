@@ -52,6 +52,9 @@ export default class Controller {
     const handleInput = (e: Event) => {
       this.handleInput(e);
     };
+    const handleSubmit = (e: Event) => {
+      this.handleSubmit();
+    };
     const submitHiddenForm = () => {
       if (this.currentStep === this.view.hiddenFormStep) {
         this.view.submitHiddenForm();
@@ -72,8 +75,9 @@ export default class Controller {
       input.addEventListener('input', handleInput);
     });
 
-    if (this.view.sendHiddenForm)
-      this.view.rightArrow.addEventListener('click', submitHiddenForm);
+    this.view.form.addEventListener('submit', handleSubmit);
+
+    if (this.view.sendHiddenForm) this.view.rightArrow.addEventListener('click', submitHiddenForm);
   }
 
   /**
@@ -97,8 +101,6 @@ export default class Controller {
     // Perform actions depending on current step
     if (this.currentStep === this.view.steps.length) {
       this.view.submitForm();
-      this.view.disableButtons();
-      this.view.hideButtons();
     } else {
       this.view.goNext();
       this.view.setMaskHeight(this.currentStep);
@@ -196,13 +198,10 @@ export default class Controller {
 
       case 'radio':
         // Get the checked radio
-        const checkedOption = this.view.form.querySelector(
-          `input[name="${input.name}"]:checked`
-        );
+        const checkedOption = this.view.form.querySelector(`input[name="${input.name}"]:checked`);
 
         // If exists, set its value
-        if (checkedOption instanceof HTMLInputElement)
-          value = checkedOption.value;
+        if (checkedOption instanceof HTMLInputElement) value = checkedOption.value;
         else break;
 
         // Get Webflow's custom radio and remove warning class
@@ -231,9 +230,7 @@ export default class Controller {
    */
   checkRequiredInputs() {
     const inputs = this.view.getInputs(this.currentStep);
-    const requiredInputs = inputs.filter(
-      (input) => input.required && isVisible(input)
-    );
+    const requiredInputs = inputs.filter((input) => input.required && isVisible(input));
     let filledInputs = 0;
 
     requiredInputs.forEach((input) => {
@@ -271,10 +268,7 @@ export default class Controller {
 
         default:
           // If input or email is not valid, add warning class
-          if (
-            !input.checkValidity() ||
-            (input.type === 'email' && !validateEmail(input.value))
-          ) {
+          if (!input.checkValidity() || (input.type === 'email' && !validateEmail(input.value))) {
             this.view.addWarningClass(input);
             break;
           }
@@ -317,10 +311,7 @@ export default class Controller {
     // Ofserve callback: Modify next button text if submit button changes
     const callback = (mutationsList: MutationRecord[]) => {
       mutationsList.forEach((mutation) => {
-        if (
-          mutation.type === 'attributes' &&
-          mutation.attributeName === 'value'
-        )
+        if (mutation.type === 'attributes' && mutation.attributeName === 'value')
           this.view.next.textContent = submitButton.value;
       });
     };
@@ -328,5 +319,13 @@ export default class Controller {
     // Init mutation observer
     const observer = new MutationObserver(callback);
     observer.observe(this.view.submitButton, config);
+  }
+
+  /**
+   * Handle when the form submits
+   */
+  handleSubmit() {
+    this.view.disableButtons();
+    this.view.hideButtons();
   }
 }
