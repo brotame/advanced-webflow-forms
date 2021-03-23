@@ -1,4 +1,4 @@
-import { getDistanceFromTop, convertToString, isFormElement } from './helpers';
+import { getDistanceFromTop, convertToString, isFormElement, findTextNode } from './helpers';
 import { MSFParams, FormElement, ButtonText } from './types';
 
 export default class View {
@@ -83,17 +83,12 @@ export default class View {
     if (currentStepSelector) {
       const currentStepDisplay = document.querySelector<HTMLElement>(currentStepSelector);
       if (currentStepDisplay) this.currentStepDisplay = currentStepDisplay;
-      else
-        throw new Error(
-          `No current step display element was found with the selector ${currentStepSelector}`
-        );
+      else throw new Error(`No current step display element was found with the selector ${currentStepSelector}`);
     }
 
     // Completed Percentage Display
     if (completedPercentageSelector) {
-      const completedPercentageDisplay = document.querySelector<HTMLElement>(
-        completedPercentageSelector
-      );
+      const completedPercentageDisplay = document.querySelector<HTMLElement>(completedPercentageSelector);
       if (completedPercentageDisplay) this.completedPercentageDisplay = completedPercentageDisplay;
       else
         throw new Error(
@@ -194,14 +189,17 @@ export default class View {
     // If text is an array sets the text to the correspondent step or falls back to the last one
     const setText = (target: 'back' | 'next') => {
       const button = target === 'back' ? this.back : this.next;
+      if (!button) return;
+
+      const textNode = findTextNode(button);
       const buttonText = target === 'back' ? this.backText : this.nextText;
 
-      if (button && Array.isArray(buttonText) && buttonText.length > 0) {
+      if (textNode && Array.isArray(buttonText) && buttonText.length > 0) {
         for (let i = 0; i <= currentStep; i++) {
           const index = buttonText.findIndex((object) => +object.step - 1 === currentStep - i);
 
           if (index >= 0) {
-            button.textContent = buttonText[index].text;
+            textNode.textContent = buttonText[index].text;
             break;
           }
         }
@@ -211,15 +209,17 @@ export default class View {
     // Set back text
     setText('back');
 
+    const nextButtonTextNode = findTextNode(this.next);
+
     // If current step is the last one, set submit text
-    if (currentStep === this.steps.length - 1) {
-      this.next.textContent = this.submitText;
+    if (nextButtonTextNode && currentStep === this.steps.length - 1) {
+      nextButtonTextNode.textContent = this.submitText;
       return;
     }
 
     // If nextText is a string, set the text only if current step is second-to-last
-    if (typeof this.nextText === 'string' && currentStep === this.steps.length - 2) {
-      this.next.textContent = this.nextText;
+    if (nextButtonTextNode && typeof this.nextText === 'string' && currentStep === this.steps.length - 2) {
+      nextButtonTextNode.textContent = this.nextText;
       return;
     }
 
@@ -438,9 +438,7 @@ export default class View {
     if (this.currentStepDisplay) this.currentStepDisplay.textContent = (currentStep + 1).toString();
 
     if (this.completedPercentageDisplay)
-      this.completedPercentageDisplay.textContent = `${Math.round(
-        (currentStep / (this.steps.length - 1)) * 100
-      )}%`;
+      this.completedPercentageDisplay.textContent = `${Math.round((currentStep / (this.steps.length - 1)) * 100)}%`;
   }
 
   createHiddenForm() {
@@ -464,18 +462,14 @@ export default class View {
       ? (formParent.parentElement.querySelector('#msf-hidden-form') as HTMLFormElement)
       : (document.querySelector('#msf-hidden-form') as HTMLFormElement);
 
-    this.hiddenSubmitButton = this.hiddenForm.querySelector(
-      'input[type="submit"]'
-    ) as HTMLInputElement;
+    this.hiddenSubmitButton = this.hiddenForm.querySelector('input[type="submit"]') as HTMLInputElement;
 
     // Get inputs that must be sent
     const inputs = this.form.querySelectorAll<HTMLElement>('[data-msf="hidden"]');
 
     // Create hidden inputs
     inputs.forEach((input) => {
-      const target = isFormElement(input)
-        ? input
-        : input.querySelector<FormElement>('input, select, textarea');
+      const target = isFormElement(input) ? input : input.querySelector<FormElement>('input, select, textarea');
 
       if (target) {
         const notCreated = !this.hiddenForm.querySelector(`#hidden-${input.id}`);

@@ -55,3 +55,18 @@ export const validateEmail = (email: string) => {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
 };
+
+/**
+ * Find the first text node child of an element
+ * @param element
+ */
+export const findTextNode = (element: Node): ChildNode | undefined => {
+  let textNode: ChildNode | undefined;
+
+  for (const node of element.childNodes) {
+    if (node.childNodes.length) textNode = findTextNode(node);
+    if (node.nodeType == Node.TEXT_NODE) textNode = node;
+    if (textNode) break;
+  }
+  return textNode;
+};
